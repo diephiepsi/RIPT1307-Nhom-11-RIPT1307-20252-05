@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
+require("dotenv/config");
 const client_1 = require("@prisma/client");
 const adapter_mariadb_1 = require("@prisma/adapter-mariadb");
+const database_1 = require("./config/database");
 function getDbAdapter() {
-    const raw = process.env.DATABASE_URL;
-    if (!raw)
-        throw new Error('Missing DATABASE_URL');
+    const raw = (0, database_1.getDatabaseUrl)();
     const u = new URL(raw);
     const database = u.pathname.replace(/^\//, '');
     return new adapter_mariadb_1.PrismaMariaDb({

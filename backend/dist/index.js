@@ -19,13 +19,30 @@ app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({ origin: true, credentials: true }));
 app.use(express_1.default.json({ limit: '2mb' }));
 app.use((0, morgan_1.default)('dev'));
+app.get('/', (_req, res) => {
+    res.json({
+        name: 'Student Q&A API',
+        health: '/api/health',
+        posts: '/api/posts',
+        questions: '/api/questions',
+    });
+});
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', auth_1.authRouter);
 app.use('/api/tags', tags_1.tagsRouter);
+// Bài đăng (câu hỏi) — alias /posts khớp tên bảng MySQL & frontend
+app.use('/api/posts', questions_1.questionsRouter);
 app.use('/api/questions', questions_1.questionsRouter);
 app.use('/api/comments', comments_1.commentsRouter);
 app.use('/api/admin', admin_1.adminRouter);
-const port = Number(process.env.PORT ?? '4000');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err, _req, res, _next) => {
+    console.error(err);
+    res.status(500).json({
+        message: err instanceof Error ? err.message : 'Internal server error',
+    });
+});
+const port = Number(process.env.PORT ?? '3000');
 app.listen(port, () => {
     console.log(`API listening on http://localhost:${port}`);
 });

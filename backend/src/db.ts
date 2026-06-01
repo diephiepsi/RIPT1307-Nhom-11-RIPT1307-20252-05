@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { getDatabaseUrl } from './config/database';
 
 function getDbAdapter() {
-  const raw = process.env.DATABASE_URL;
-  if (!raw) throw new Error('Missing DATABASE_URL');
+  const raw = getDatabaseUrl();
   const u = new URL(raw);
   const database = u.pathname.replace(/^\//, '');
   return new PrismaMariaDb({
@@ -19,4 +20,3 @@ function getDbAdapter() {
 export const prisma = new PrismaClient({
   adapter: getDbAdapter(),
 });
-

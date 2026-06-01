@@ -49,12 +49,20 @@ export function AskQuestionPage() {
             />
           </Form.Item>
 
-          <Form.Item name="content" label="Nội dung" rules={[{ required: true, min: 20 }]}>
-            <Form.Item noStyle shouldUpdate>
-              {({ getFieldValue, setFieldValue }) => (
-                <TinyEditor value={getFieldValue('content')} onChange={(v) => setFieldValue('content', v)} />
-              )}
-            </Form.Item>
+          <Form.Item
+            name="content"
+            label="Nội dung"
+            rules={[
+              { required: true, message: 'Vui lòng nhập nội dung' },
+              {
+                validator: (_, v: string) =>
+                  !v || v.replace(/<[^>]+>/g, '').trim().length >= 20
+                    ? Promise.resolve()
+                    : Promise.reject(new Error('Nội dung tối thiểu 20 ký tự')),
+              },
+            ]}
+          >
+            <TinyEditor />
           </Form.Item>
 
           <Button type="primary" htmlType="submit">

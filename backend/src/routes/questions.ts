@@ -59,7 +59,11 @@ router.get('/:id', authOptional, async (req, res) => {
       comments: {
         where: { deletedAt: null },
         orderBy: { createdAt: 'asc' },
-        include: {
+        select: {
+          id: true,
+          content: true,
+          parentId: true,
+          createdAt: true,
           author: { select: { id: true, fullName: true, role: true } },
           votes: { select: { value: true, userId: true } },
         },
@@ -79,6 +83,7 @@ router.get('/:id', authOptional, async (req, res) => {
     comments: q.comments.map((c: (typeof q.comments)[number]) => ({
       id: c.id,
       content: c.content,
+      parentId: c.parentId,
       createdAt: c.createdAt.toISOString(),
       author: c.author,
       votes: summarizeVotes(c.votes, req.user?.id),
@@ -151,7 +156,10 @@ router.post('/', authRequired, async (req, res) => {
   });
 });
 
-const addCommentSchema = z.object({ content: z.string().min(1) });
+const addCommentSchema = z.object({
+  content: z.string().min(1),
+  parentId: z.string().optional(),
+});
 
 router.post('/:id/comments', authRequired, async (req, res) => {
   const parsed = addCommentSchema.safeParse(req.body);
@@ -164,8 +172,20 @@ router.post('/:id/comments', authRequired, async (req, res) => {
   });
   if (!q) return res.status(404).json({ message: 'Not found' });
 
+  if (parsed.data.parentId) {
+    const parent = await prisma.comment.findFirst({
+      where: { id: parsed.data.parentId, questionId, deletedAt: null },
+    });
+    if (!parent) return res.status(400).json({ message: 'Parent comment not found' });
+  }
+
   const c = await prisma.comment.create({
-    data: { questionId, authorId: req.user!.id, content: parsed.data.content },
+    data: {
+      questionId,
+      authorId: req.user!.id,
+      content: parsed.data.content,
+      parentId: parsed.data.parentId ?? null,
+    },
   });
 
   // notify question author

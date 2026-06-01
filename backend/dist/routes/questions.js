@@ -54,7 +54,11 @@ router.get('/:id', auth_1.authOptional, async (req, res) => {
             comments: {
                 where: { deletedAt: null },
                 orderBy: { createdAt: 'asc' },
-                include: {
+                select: {
+                    id: true,
+                    content: true,
+                    parentId: true,
+                    createdAt: true,
                     author: { select: { id: true, fullName: true, role: true } },
                     votes: { select: { value: true, userId: true } },
                 },
@@ -74,6 +78,7 @@ router.get('/:id', auth_1.authOptional, async (req, res) => {
         comments: q.comments.map((c) => ({
             id: c.id,
             content: c.content,
+            parentId: c.parentId,
             createdAt: c.createdAt.toISOString(),
             author: c.author,
             votes: (0, voting_1.summarizeVotes)(c.votes, req.user?.id),
@@ -135,7 +140,10 @@ router.post('/', auth_1.authRequired, async (req, res) => {
         comments: [],
     });
 });
-const addCommentSchema = zod_1.z.object({ content: zod_1.z.string().min(1) });
+const addCommentSchema = zod_1.z.object({
+    content: zod_1.z.string().min(1),
+    parentId: zod_1.z.string().optional(),
+});
 router.post('/:id/comments', auth_1.authRequired, async (req, res) => {
     const parsed = addCommentSchema.safeParse(req.body);
     if (!parsed.success)
@@ -147,8 +155,20 @@ router.post('/:id/comments', auth_1.authRequired, async (req, res) => {
     });
     if (!q)
         return res.status(404).json({ message: 'Not found' });
+    if (parsed.data.parentId) {
+        const parent = await db_1.prisma.comment.findFirst({
+            where: { id: parsed.data.parentId, questionId, deletedAt: null },
+        });
+        if (!parent)
+            return res.status(400).json({ message: 'Parent comment not found' });
+    }
     const c = await db_1.prisma.comment.create({
-        data: { questionId, authorId: req.user.id, content: parsed.data.content },
+        data: {
+            questionId,
+            authorId: req.user.id,
+            content: parsed.data.content,
+            parentId: parsed.data.parentId ?? null,
+        },
     });
     // notify question author
     await (0, mail_1.sendMail)({
