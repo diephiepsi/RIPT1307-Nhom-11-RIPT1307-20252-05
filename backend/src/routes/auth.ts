@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
 
   const { email, password, fullName, role } = parsed.data;
   const exists = await prisma.user.findUnique({ where: { email } });
-  if (exists) return res.status(409).json({ message: 'Email already exists' });
+  if (exists) return res.status(409).json({ message: 'Email này đã được sử dụng' });
 
   const hashed = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
@@ -49,11 +49,13 @@ router.post('/login', async (req, res) => {
   const { email, password } = parsed.data;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
-  if (user.locked) return res.status(403).json({ message: 'Account is locked' });
+  if (!user) return res.status(401).json({ message: 'Tài khoản không tồn tại' });
+  
+  // Kiểm tra khóa tài khoản lúc đăng nhập
+  if (user.locked) return res.status(403).json({ message: 'Tài khoản của bạn đã bị khóa bởi Quản trị viên' });
 
   const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!ok) return res.status(401).json({ message: 'Mật khẩu không chính xác' });
 
   const token = signToken({ id: user.id, role: user.role, email: user.email });
   res.json({
@@ -67,9 +69,12 @@ router.get('/me', authRequired, async (req, res) => {
     where: { id: req.user!.id },
     select: { id: true, email: true, fullName: true, role: true, locked: true },
   });
-  if (!user) return res.status(404).json({ message: 'Not found' });
+  if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
+  // NÂNG CẤP: Chặn luôn truy cập nếu Token còn hạn nhưng tài khoản đã bị Admin khóa
+  if (user.locked) return res.status(403).json({ message: 'Tài khoản của bạn đã bị khóa' });
+
   res.json(user);
 });
 
 export const authRouter = router;
-

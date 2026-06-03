@@ -39,12 +39,13 @@ model Tag {
 }
 
 model Question {
-  id        String    @id @default(cuid())
-  title     String
-  content   String    @db.LongText
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id         String    @id @default(cuid())
+  title      String
+  content    String    @db.LongText
+  isApproved Boolean   @default(false) @map("is_approved") // <-- THÊM DÒNG NÀY: Trạng thái duyệt bài
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
 
   authorId String @map("user_id")
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -110,3 +111,5 @@ model Vote {
   @@index([commentId])
   @@map("votes")
 }
+
+
