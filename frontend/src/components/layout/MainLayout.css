@@ -1,0 +1,19 @@
+
+.layout-wrapper {
+  min-height: 100vh;
+}
+
+.main-container {
+  display: flex;
+  max-width: 1264px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.content-render {
+  flex: 1;
+  padding: 24px;
+  background-color: #ffffff;
+  border-left: 1px solid var(--so-border);
+  min-height: calc(100vh - var(--header-height));
+}

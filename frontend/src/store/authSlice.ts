@@ -36,11 +36,13 @@ const slice = createSlice({
     logout(state) {
       state.token = null;
       state.user = null;
+      state.status = 'idle';
       storage.clearToken();
     },
   },
   extraReducers: (builder) => {
     builder
+      // Xử lý Login
       .addCase(login.pending, (s) => {
         s.status = 'loading';
       })
@@ -53,18 +55,31 @@ const slice = createSlice({
       .addCase(login.rejected, (s) => {
         s.status = 'failed';
       })
+      
+      // Xử lý Register
       .addCase(register.fulfilled, (s, a) => {
         s.status = 'idle';
         s.token = a.payload.token;
         s.user = a.payload.user;
         storage.setToken(a.payload.token);
       })
+      
+      // Xử lý Khôi phục phiên làm việc (Get Profile khi F5)
+      .addCase(fetchMe.pending, (s) => {
+        s.status = 'loading';
+      })
       .addCase(fetchMe.fulfilled, (s, a) => {
-        s.user = a.payload;
+        s.status = 'idle';
+        s.user = a.payload; // Khôi phục thông tin user thành công
+      })
+      .addCase(fetchMe.rejected, (s) => {
+        s.status = 'failed';
+        s.token = null;
+        s.user = null;
+        storage.clearToken(); // Token cũ đã hết hạn hoặc không hợp lệ -> Xóa sạch để user đăng nhập lại
       });
   },
 });
 
 export const { logout } = slice.actions;
 export const authReducer = slice.reducer;
-

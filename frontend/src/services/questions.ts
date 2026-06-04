@@ -33,5 +33,15 @@ export const questionsService = {
     const { data } = await api.get<Tag[]>('/tags');
     return data;
   },
+
+  getNotifications: async () => {
+    return api.get<any[]>('/notifications');
+  },
+
+  // Thêm hàm báo đã đọc hết
+  markNotificationsAsRead: async () => {
+    return api.post('/notifications/read-all');
+  }
 };
+
 

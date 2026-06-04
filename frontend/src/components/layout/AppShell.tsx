@@ -1,9 +1,22 @@
-import { Button, Layout, Menu, Space, Typography } from 'antd';
+import { Button, Layout, Menu, Space, Typography, Input, Popover, Badge, List, Avatar } from 'antd';
+import { BellOutlined } from '@ant-design/icons';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/authSlice';
+import { useState, useEffect } from 'react';
 
-const { Header, Content } = Layout;
+const { Header, Content, Sider } = Layout;
+
+interface NotificationItem {
+  id: string;
+  recipientId: string;
+  senderId: string;
+  type: 'LIKE' | 'COMMENT' | string;
+  content: string;
+  targetId: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 function useSelectedKey() {
   const loc = useLocation();
@@ -22,43 +35,206 @@ export function AppShell() {
   const nav = useNavigate();
   const selectedKey = useSelectedKey();
 
-  const items = [
-    { key: '/', label: <Link to="/">Câu hỏi</Link> },
-    { key: '/ask', label: <Link to="/ask">Đặt câu hỏi</Link> },
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  // ============================================================
+  // FETCH THÔNG BÁO TỰ ĐỘNG (BỔ SUNG TOKEN GUARD PHÒNG LỖI LOGOUT)
+  // ============================================================
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchNotifications = async () => {
+      const token = localStorage.getItem('token'); 
+      if (!token) return; // Nếu đã logout hoặc mất token, chặn gọi API ngầm để tránh lỗi 401 Unauthorized
+
+      try {
+        const res = await fetch('/notifications', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải thông báo:', error);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000); 
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const markAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch('/notifications/read-all', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật trạng thái đã đọc:', error);
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const notificationContent = (
+    <div style={{ width: '340px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '5px', borderBottom: '1px solid #f0f0f0' }}>
+        <span style={{ fontWeight: 600 }}>Thông báo</span>
+        {unreadCount > 0 && (
+          <Button type="link" size="small" onClick={markAllAsRead} style={{ padding: 0, fontSize: '0.8rem' }}>
+            Đánh dấu đã đọc
+          </Button>
+        )}
+      </div>
+      <List
+        dataSource={notifications}
+        itemLayout="horizontal"
+        locale={{ emptyText: 'Bạn không có thông báo nào' }}
+        renderItem={(item) => (
+          <List.Item 
+            style={{ 
+              padding: '8px 8px', 
+              backgroundColor: !item.isRead ? '#f4f8fa' : 'transparent',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginBottom: '4px',
+              transition: 'background-color 0.2s'
+            }}
+            onClick={() => {
+              // CHÚ Ý: Sửa lại path này (/questions hoặc /posts) cho khớp chính xác với Router Front-end của bạn
+              nav(`/questions/${item.targetId}`);
+            }}
+          >
+            <List.Item.Meta
+              avatar={
+                <Avatar 
+                  size="small" 
+                  style={{ backgroundColor: !item.isRead ? '#0a95ff' : '#cbd5e1' }}
+                  icon={item.type === 'LIKE' ? '❤️' : '💬'} 
+                />
+              }
+              title={
+                <span style={{ fontSize: '0.82rem', fontWeight: !item.isRead ? 600 : 400, color: '#232629' }}>
+                  {item.content}
+                </span>
+              }
+              description={
+                <span style={{ fontSize: '0.7rem', color: '#9199a1' }}>
+                  {formatTime(item.createdAt)}
+                </span>
+              }
+            />
+          </List.Item>
+        )}
+      />
+    </div>
+  );
+
+  const sidebarItems = [
+    { key: '/', label: <Link to="/">Questions</Link> },
+    { key: '/ask', label: <Link to="/ask">Ask a Question</Link> },
   ];
 
   if (user?.role === 'ADMIN') {
-    items.push(
-      { key: '/admin/posts', label: <Link to="/admin/posts">Quản trị bài</Link> },
-      { key: '/admin/users', label: <Link to="/admin/users">Quản trị user</Link> },
+    sidebarItems.push(
+      { key: '/admin/posts', label: <Link to="/admin/posts">⚙️ Quản trị bài</Link> },
+      { key: '/admin/users', label: <Link to="/admin/users">⚙️ Quản trị user</Link> },
     );
   }
 
+  const isAuthPage = selectedKey === '/login' || selectedKey === '/register';
+
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Space>
-          <Typography.Title level={4} style={{ color: 'white', margin: 0 }}>
-            Diễn đàn Hỏi Đáp
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+      
+      {/* --- HEADER --- */}
+      <Header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        width: '100%',
+        height: '50px',
+        lineHeight: '50px',
+        backgroundColor: '#ffffff',
+        borderTop: '3px solid #f48225',
+        borderBottom: '1px solid #e3e6e8',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 20px',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+      }}>
+        <Space size="large" style={{ flex: 1, maxWidth: '800px' }}>
+          <Typography.Title 
+            level={4} 
+            onClick={() => nav('/')}
+            style={{ color: '#0c0d0e', margin: 0, cursor: 'pointer', fontFamily: 'sans-serif', fontSize: '1.3rem' }}
+          >
+            UniBrain<span style={{ fontWeight: 300, color: '#f48225' }}>.com</span>
           </Typography.Title>
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            selectable
-            selectedKeys={[selectedKey]}
-            items={items}
-            style={{ minWidth: 420 }}
+
+          <Input 
+            placeholder="Search missing concepts, tags, errors..." 
+            style={{ width: '50vw', maxWidth: '600px', borderRadius: '3px' }}
           />
         </Space>
 
-        <Space>
+        <Space size="middle">
           {user ? (
             <>
-              <Typography.Text style={{ color: 'white' }}>
-                {user.fullName} ({user.role})
+              {/* --- NÚT CHUÔNG THÔNG BÁO --- */}
+              <Popover 
+                content={notificationContent} 
+                trigger="click" 
+                placement="bottomRight"
+                arrow={{ pointAtCenter: true }}
+              >
+                <Badge count={unreadCount} size="small" offset={[-2, 4]} style={{ backgroundColor: '#f48225' }}>
+                  <Button 
+                    type="text" 
+                    icon={<BellOutlined style={{ fontSize: '1.2rem', color: '#525960' }} />} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      padding: '4px'
+                    }} 
+                  />
+                </Badge>
+              </Popover>
+
+              <Typography.Text style={{ color: '#232629', fontSize: '0.85rem' }}>
+                {user.fullName} (<span style={{ color: '#0074cc', fontWeight: 'bold' }}>{user.role}</span>)
               </Typography.Text>
+              
               <Button
+                size="small"
+                style={{
+                  backgroundColor: '#f48225',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '3px',
+                  fontSize: '0.8rem'
+                }}
                 onClick={() => {
+                  localStorage.removeItem('token'); 
                   dispatch(logout());
                   nav('/login');
                 }}
@@ -68,19 +244,55 @@ export function AppShell() {
             </>
           ) : (
             <>
-              <Button onClick={() => nav('/login')}>Đăng nhập</Button>
-              <Button type="primary" onClick={() => nav('/register')}>
-                Đăng ký
+              <Button 
+                size="small"
+                style={{ backgroundColor: '#e1ecf4', color: '#39739d', borderColor: '#7aa7c7', borderRadius: '3px' }} 
+                onClick={() => nav('/login')}
+              >
+                Log in
+              </Button>
+              <Button 
+                type="primary" 
+                size="small"
+                style={{ backgroundColor: '#0a95ff', borderColor: 'transparent', borderRadius: '3px' }} 
+                onClick={() => nav('/register')}
+              >
+                Sign up
               </Button>
             </>
           )}
         </Space>
       </Header>
 
-      <Content style={{ padding: 24, maxWidth: 1200, width: '100%', margin: '0 auto' }}>
-        <Outlet />
-      </Content>
+      {/* --- THÂN TRANG --- */}
+      <Layout style={{ maxWidth: '1264px', width: '100%', margin: '0 auto', background: 'transparent' }}>
+        {!isAuthPage && (
+          <Sider
+            width={170}
+            theme="light"
+            style={{
+              background: 'transparent',
+              borderRight: '1px solid #e3e6e8',
+              height: 'calc(100vh - 50px)',
+              position: 'sticky',
+              top: '50px',
+              paddingTop: '16px'
+            }}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedKey]}
+              items={sidebarItems}
+              style={{ background: 'transparent', borderRight: 'none' }}
+              className="so-sidebar-menu"
+            />
+          </Sider>
+        )}
+
+        <Content style={{ padding: '24px', backgroundColor: '#ffffff', minHeight: 'calc(100vh - 50px)', flex: 1 }}>
+          <Outlet />
+        </Content>
+      </Layout>
     </Layout>
   );
 }
-
