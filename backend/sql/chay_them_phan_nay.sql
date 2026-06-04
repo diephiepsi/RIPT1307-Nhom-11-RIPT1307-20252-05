@@ -175,20 +175,6 @@ INSERT INTO votes (id, value, user_id, post_id, comment_id) VALUES
 
 
 
-CREATE TABLE notifications (
-  id           VARCHAR(30)  NOT NULL,
-  recipient_id VARCHAR(30)  NOT NULL, -- Người nhận thông báo (chủ bài viết)
-  sender_id    VARCHAR(30)  NOT NULL, -- Người thực hiện hành động (người comment/like)
-  type         VARCHAR(20)  NOT NULL, -- 'LIKE' hoặc 'COMMENT'
-  content      VARCHAR(255) NOT NULL, -- Nội dung hiển thị (Ví dụ: "Nguyễn Văn A đã bình luận...")
-  target_id    VARCHAR(30)  NOT NULL, -- ID của câu hỏi để bấm vào là nhảy trang
-  is_read      TINYINT   NOT NULL DEFAULT 0, -- 0: Chưa đọc, 1: Đã đọc
-  created_at   DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (id),
-  KEY idx_notifications_recipient (recipient_id),
-  CONSTRAINT fk_notifications_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_notifications_sender    FOREIGN KEY (sender_id)    REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-// Mọi người nhớ git pull về xong phải chạy cái này để thêm db   yarn prisma generate
+

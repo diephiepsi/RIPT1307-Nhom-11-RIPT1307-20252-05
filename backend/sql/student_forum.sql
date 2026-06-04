@@ -45,6 +45,8 @@ CREATE TABLE posts (
   id         VARCHAR(30)  NOT NULL,
   title      VARCHAR(255) NOT NULL,
   content    LONGTEXT     NOT NULL,
+  view_count INT          NOT NULL DEFAULT 0,
+  score      INT          NOT NULL DEFAULT 0,
   user_id    VARCHAR(30)  NOT NULL,
   deleted_at DATETIME(3)  NULL,
   created_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -179,6 +181,12 @@ INSERT INTO votes (id, value, user_id, post_id, comment_id) VALUES
 --   student@gmail.com / 123456  (STUDENT)
 --   teacher@gmail.com / 123456  (LECTURER)
 -- =========================
+
+
+
+
+// TẠo bảng mới này nhơ 
+
 CREATE TABLE notifications (
   id           VARCHAR(30)  NOT NULL,
   recipient_id VARCHAR(30)  NOT NULL, -- Người nhận thông báo (chủ bài viết)
