@@ -14,7 +14,6 @@ function getDbAdapter() {
     password: decodeURIComponent(u.password),
     database,
     connectionLimit: 10,
-    allowPublicKeyRetrieval: true,
   });
 }
 

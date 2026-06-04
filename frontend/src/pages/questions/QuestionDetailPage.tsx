@@ -1,619 +1,230 @@
-import {
-  App,
-  Avatar,
-  Button,
-  Card,
-  Divider,
-  Empty,
-  Input,
-  Progress,
-  Space,
-  Spin,
-  Tag as AntTag,
-  Timeline,
-  Tooltip,
-  Typography,
-} from "antd";
-import {
-  BookOutlined,
-  CheckCircleOutlined,
-  CopyOutlined,
-  DislikeFilled,
-  EyeOutlined,
-  LikeFilled,
-  MessageOutlined,
-  SendOutlined,
-  StarFilled,
-} from "@ant-design/icons";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import type { CommentItem, QuestionDetail } from "../../models/qa";
-import { questionsService } from "../../services/questions";
+import { App, Button, Divider, Input, Space, Tag, Typography } from 'antd';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import type { QuestionDetail } from '../../models/qa';
+import { questionsService } from '../../services/questions';
+import { useAppSelector } from '../../store/hooks';
 
-const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
-
-const getLikes = (x?: { likesCount?: number; votes?: any }) =>
-  x?.likesCount ?? x?.votes?.likesCount ?? x?.votes?.up ?? 0;
-
-const getDislikes = (x?: { dislikesCount?: number; votes?: any }) =>
-  x?.dislikesCount ?? x?.votes?.dislikesCount ?? x?.votes?.down ?? 0;
-
-const formatDate = (date?: string) =>
-  date ? new Date(date).toLocaleString("vi-VN") : "";
-
-const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  background: "linear-gradient(180deg, #f3f7ff 0%, #f8fafc 45%, #ffffff 100%)",
-  padding: "28px 20px 48px",
-};
-
-const containerStyle: React.CSSProperties = {
-  maxWidth: 1180,
-  margin: "0 auto",
-};
-
-const mainCardStyle: React.CSSProperties = {
-  borderRadius: 24,
-  border: "1px solid #edf1f7",
-  boxShadow: "0 14px 38px rgba(15, 23, 42, 0.07)",
-  overflow: "hidden",
-};
-
-const sideCardStyle: React.CSSProperties = {
-  borderRadius: 22,
-  border: "1px solid #edf1f7",
-  boxShadow: "0 12px 32px rgba(15, 23, 42, 0.06)",
-  marginBottom: 16,
-};
-
-const voteButtonStyle: React.CSSProperties = {
-  width: 46,
-  height: 46,
-  borderRadius: 14,
-};
-
-const commentCardStyle: React.CSSProperties = {
-  borderRadius: 18,
-  border: "1px solid #edf1f7",
-  marginBottom: 12,
-  background: "#fff",
-};
+// Thiết kế lại bộ nút Vote dạng cột dọc chuẩn Stack Overflow
+function StackVoteButtons({ 
+  score, 
+  onVote 
+}: { 
+  score: number; 
+  onVote: (v: -1 | 0 | 1) => void 
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '45px', gap: '4px' }}>
+      <Button 
+        shape="circle" 
+        style={{ border: '1px solid #babfc4', color: '#6a737c' }}
+        onClick={() => onVote(1)}
+      >
+        ▲
+      </Button>
+      <span style={{ fontSize: '1.3rem', fontWeight: 600, color: '#232629', margin: '4px 0' }}>
+        {score}
+      </span>
+      <Button 
+        shape="circle" 
+        style={{ border: '1px solid #babfc4', color: '#6a737c' }}
+        onClick={() => onVote(-1)}
+      >
+        ▼
+      </Button>
+      <Button 
+        type="link" 
+        size="small" 
+        style={{ fontSize: '0.7rem', color: '#9199a1', padding: 0, marginTop: '4px' }}
+        onClick={() => onVote(0)}
+      >
+        Clear
+      </Button>
+    </div>
+  );
+}
 
 export function QuestionDetailPage() {
-  const { id = "" } = useParams();
+  const { id } = useParams();
   const { message } = App.useApp();
-
-  const viewedRef = useRef<string | null>(null);
-
-  const [loading, setLoading] = useState(false);
-  const [question, setQuestion] = useState<QuestionDetail | null>(null);
-  const [comment, setComment] = useState("");
-  const [commentSort, setCommentSort] = useState<"best" | "newest">("best");
-  const [submitting, setSubmitting] = useState(false);
+  const { token } = useAppSelector((s) => s.auth);
+  const [data, setData] = useState<QuestionDetail | null>(null);
+  const [comment, setComment] = useState('');
 
   const load = async () => {
     if (!id) return;
-
-    setLoading(true);
-
     try {
-      const data = await questionsService.detail(id);
-      setQuestion(data);
-    } catch (err: any) {
-      message.error(
-        err?.response?.data?.message || "Không tải được chi tiết câu hỏi",
-      );
-    } finally {
-      setLoading(false);
+      setData(await questionsService.get(id));
+    } catch {
+      message.error('Không tải được chi tiết câu hỏi');
     }
   };
 
   useEffect(() => {
     void load();
-
-    // Fix lỗi React StrictMode làm useEffect chạy 2 lần ở môi trường dev.
-    // Mỗi id câu hỏi chỉ gọi API tăng view đúng 1 lần.
-    if (id && viewedRef.current !== id) {
-      viewedRef.current = id;
-      void questionsService.view(id).catch(() => void 0);
-    }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const comments = useMemo(() => {
-    const list = [...(question?.comments ?? [])];
-
-    if (commentSort === "newest") {
-      return list.sort(
-        (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt),
-      );
-    }
-
-    return list.sort(
-      (a, b) => getLikes(b) - getDislikes(b) - (getLikes(a) - getDislikes(a)),
-    );
-  }, [question?.comments, commentSort]);
-
-  const handleVote = async (value: -1 | 0 | 1) => {
-    if (!question) return;
-
-    try {
-      const nextValue = question.votes?.myVote === value ? 0 : value;
-      const res = await questionsService.vote(question.id, nextValue);
-
-      setQuestion({
-        ...question,
-        votes: res.votes,
-        likesCount: res.votes.likesCount,
-        dislikesCount: res.votes.dislikesCount,
-      });
-    } catch {
-      message.warning("Bạn cần đăng nhập để vote");
-    }
-  };
-
-  const handleBookmark = async () => {
-    if (!question) return;
-
-    try {
-      const res = await questionsService.bookmark(question.id);
-
-      setQuestion({
-        ...question,
-        isBookmarked: res.isBookmarked,
-      });
-
-      message.success(
-        res.isBookmarked ? "Đã lưu câu hỏi" : "Đã bỏ lưu câu hỏi",
-      );
-    } catch {
-      message.warning("Bạn cần đăng nhập để lưu câu hỏi");
-    }
-  };
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    message.success("Đã copy link câu hỏi");
-  };
-
-  const handleComment = async () => {
-    if (!question || !comment.trim()) return;
-
-    setSubmitting(true);
-
-    try {
-      const created = await questionsService.addComment(question.id, {
-        content: comment.trim(),
-      });
-
-      setQuestion({
-        ...question,
-        comments: [...question.comments, created],
-        answersCount: (question.answersCount ?? 0) + 1,
-      });
-
-      setComment("");
-      message.success("Đã gửi bình luận");
-    } catch {
-      message.warning("Bạn cần đăng nhập để bình luận");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <Spin spinning>
-            <Card style={{ ...mainCardStyle, minHeight: 320 }} />
-          </Spin>
-        </div>
-      </div>
-    );
-  }
-
-  if (!question) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <Card style={mainCardStyle}>
-            <Empty description="Không tìm thấy câu hỏi" />
-            <div style={{ textAlign: "center", marginTop: 16 }}>
-              <Link to="/questions">Về danh sách</Link>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  const likes = getLikes(question);
-  const dislikes = getDislikes(question);
-  const answers = question.answersCount ?? question.comments?.length ?? 0;
-  const views = question.viewsCount ?? 0;
-  const totalVotes = Math.max(1, likes + dislikes);
-  const likePercent = Math.round((likes / totalVotes) * 100);
+  if (!data) return null;
 
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        <Space style={{ marginBottom: 16 }} wrap>
-          <Link to="/questions">
-            <Button>← Về danh sách</Button>
-          </Link>
-
-          <Button icon={<CopyOutlined />} onClick={() => void handleCopy()}>
-            Copy link
-          </Button>
-
-          <Button
-            type={question.isBookmarked ? "primary" : "default"}
-            icon={question.isBookmarked ? <StarFilled /> : <BookOutlined />}
-            onClick={() => void handleBookmark()}
-          >
-            {question.isBookmarked ? "Đã lưu" : "Lưu câu hỏi"}
-          </Button>
-        </Space>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 300px",
-            gap: 18,
-            alignItems: "start",
-          }}
-        >
-          <main>
-            <Card style={mainCardStyle} styles={{ body: { padding: 0 } }}>
-              <div
-                style={{
-                  padding: 24,
-                  background:
-                    "linear-gradient(135deg, rgba(22,119,255,0.98), rgba(64,169,255,0.9))",
-                  color: "#fff",
-                }}
-              >
-                <Space size={8} wrap style={{ marginBottom: 12 }}>
-                  <AntTag color="blue">Chi tiết câu hỏi</AntTag>
-
-                  {question.isBookmarked && (
-                    <AntTag color="gold" icon={<StarFilled />}>
-                      Đã lưu
-                    </AntTag>
-                  )}
-
-                  {answers > 0 ? (
-                    <AntTag color="green" icon={<CheckCircleOutlined />}>
-                      Đã có trả lời
-                    </AntTag>
-                  ) : (
-                    <AntTag>Chưa có trả lời</AntTag>
-                  )}
-                </Space>
-
-                <Title
-                  level={2}
-                  style={{
-                    color: "#fff",
-                    margin: 0,
-                    lineHeight: 1.25,
-                  }}
-                >
-                  {question.title}
-                </Title>
-
-                <Space
-                  size={10}
-                  wrap
-                  style={{
-                    marginTop: 14,
-                    color: "rgba(255,255,255,0.88)",
-                  }}
-                >
-                  <Avatar>{question.author?.fullName?.[0] ?? "U"}</Avatar>
-
-                  <span>{question.author?.fullName || "Người dùng"}</span>
-                  <span>•</span>
-                  <span>{formatDate(question.createdAt)}</span>
-                  <span>•</span>
-                  <span>
-                    <EyeOutlined /> {views} lượt xem
-                  </span>
-                </Space>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "76px minmax(0, 1fr)",
-                  gap: 18,
-                  padding: 24,
-                }}
-              >
-                <aside>
-                  <Space direction="vertical" align="center" size={10}>
-                    <Tooltip title="Like">
-                      <Button
-                        type={
-                          question.votes?.myVote === 1 ? "primary" : "default"
-                        }
-                        icon={<LikeFilled />}
-                        style={voteButtonStyle}
-                        onClick={() => void handleVote(1)}
-                      />
-                    </Tooltip>
-
-                    <div
-                      style={{
-                        fontSize: 22,
-                        fontWeight: 900,
-                        color: "#1677ff",
-                      }}
-                    >
-                      {likes}
-                    </div>
-
-                    <Tooltip title="Dislike">
-                      <Button
-                        danger={question.votes?.myVote === -1}
-                        icon={<DislikeFilled />}
-                        style={voteButtonStyle}
-                        onClick={() => void handleVote(-1)}
-                      />
-                    </Tooltip>
-
-                    <div
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        color: "#ff4d4f",
-                      }}
-                    >
-                      {dislikes}
-                    </div>
-                  </Space>
-                </aside>
-
-                <section style={{ minWidth: 0 }}>
-                  <div style={{ marginBottom: 16 }}>
-                    {question.tags?.map((t) => (
-                      <AntTag
-                        key={t.id || t.name}
-                        style={{
-                          borderRadius: 999,
-                          padding: "4px 10px",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {t.name}
-                      </AntTag>
-                    ))}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: 16,
-                      lineHeight: 1.8,
-                      color: "#1f2937",
-                    }}
-                    dangerouslySetInnerHTML={{ __html: question.content }}
-                  />
-
-                  <Divider />
-
-                  <Progress
-                    percent={likePercent}
-                    status={dislikes > likes ? "exception" : "active"}
-                  />
-
-                  <Text type="secondary">
-                    {likes} Like • {dislikes} Dislike • {answers} trả lời
-                  </Text>
-                </section>
-              </div>
-            </Card>
-
-            <Card
-              style={{ ...mainCardStyle, marginTop: 18 }}
-              styles={{ body: { padding: 22 } }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  flexWrap: "wrap",
-                  marginBottom: 16,
-                }}
-              >
-                <div>
-                  <Title level={3} style={{ margin: 0 }}>
-                    Câu trả lời
-                  </Title>
-
-                  <Text type="secondary">
-                    Hãy trả lời rõ ràng, có ví dụ hoặc hướng xử lý cụ thể.
-                  </Text>
-                </div>
-
-                <Space>
-                  <Button
-                    type={commentSort === "best" ? "primary" : "default"}
-                    onClick={() => setCommentSort("best")}
-                  >
-                    Hay nhất
-                  </Button>
-
-                  <Button
-                    type={commentSort === "newest" ? "primary" : "default"}
-                    onClick={() => setCommentSort("newest")}
-                  >
-                    Mới nhất
-                  </Button>
-                </Space>
-              </div>
-
-              <TextArea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={5}
-                placeholder="Viết câu trả lời của bạn..."
-                style={{
-                  borderRadius: 14,
-                  resize: "vertical",
-                  marginBottom: 12,
-                }}
-              />
-
-              <Space wrap style={{ marginBottom: 20 }}>
-                <Button
-                  onClick={() =>
-                    setComment(
-                      "Theo mình, vấn đề này nên xử lý theo các bước sau:\n\n1. ...\n2. ...\n3. ...",
-                    )
-                  }
-                >
-                  Mẫu trả lời
-                </Button>
-
-                <Button
-                  onClick={() =>
-                    setComment(
-                      "Bạn có thể gửi thêm ảnh lỗi hoặc đoạn code liên quan không?",
-                    )
-                  }
-                >
-                  Hỏi thêm thông tin
-                </Button>
-
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  loading={submitting}
-                  onClick={() => void handleComment()}
-                >
-                  Gửi
-                </Button>
-              </Space>
-
-              {comments.length === 0 ? (
-                <Empty description="Chưa có câu trả lời nào" />
-              ) : (
-                comments.map((c: CommentItem) => (
-                  <Card
-                    key={c.id}
-                    style={commentCardStyle}
-                    styles={{ body: { padding: 16 } }}
-                  >
-                    <Space align="start" style={{ width: "100%" }}>
-                      <Avatar>{c.author?.fullName?.[0] ?? "U"}</Avatar>
-
-                      <div style={{ flex: 1 }}>
-                        <Space wrap>
-                          <Text strong>
-                            {c.author?.fullName || "Người dùng"}
-                          </Text>
-
-                          <Text type="secondary">
-                            {formatDate(c.createdAt)}
-                          </Text>
-
-                          {getLikes(c) >= 3 && (
-                            <AntTag color="green">Hữu ích</AntTag>
-                          )}
-                        </Space>
-
-                        <Paragraph
-                          style={{
-                            marginTop: 10,
-                            marginBottom: 10,
-                            whiteSpace: "pre-wrap",
-                            lineHeight: 1.7,
-                          }}
-                        >
-                          {c.content}
-                        </Paragraph>
-
-                        <Space size={16}>
-                          <Text type="secondary">
-                            <LikeFilled /> {getLikes(c)}
-                          </Text>
-
-                          <Text type="secondary">
-                            <DislikeFilled /> {getDislikes(c)}
-                          </Text>
-                        </Space>
-                      </div>
-                    </Space>
-                  </Card>
-                ))
-              )}
-            </Card>
-          </main>
-
-          <aside>
-            <Card style={sideCardStyle}>
-              <Title level={4} style={{ marginTop: 0 }}>
-                Thống kê
-              </Title>
-
-              <Timeline
-                items={[
-                  {
-                    dot: <LikeFilled style={{ color: "#1677ff" }} />,
-                    children: `${likes} lượt thích`,
-                  },
-                  {
-                    dot: <DislikeFilled style={{ color: "#ff4d4f" }} />,
-                    children: `${dislikes} lượt không thích`,
-                  },
-                  {
-                    dot: <MessageOutlined style={{ color: "#52c41a" }} />,
-                    children: `${answers} câu trả lời`,
-                  },
-                  {
-                    dot: <EyeOutlined style={{ color: "#722ed1" }} />,
-                    children: `${views} lượt xem`,
-                  },
-                ]}
-              />
-            </Card>
-
-            <Card style={sideCardStyle}>
-              <Title level={4} style={{ marginTop: 0 }}>
-                Chất lượng vote
-              </Title>
-
-              <Progress
-                type="circle"
-                percent={likePercent}
-                status={dislikes > likes ? "exception" : "success"}
-              />
-
-              <Paragraph type="secondary" style={{ marginTop: 14 }}>
-                Tỷ lệ này được tính theo Like / tổng số Like và Dislike.
-              </Paragraph>
-            </Card>
-
-            <Card style={sideCardStyle}>
-              <Title level={4} style={{ marginTop: 0 }}>
-                Gợi ý trả lời hay
-              </Title>
-
-              <Space direction="vertical">
-                <Text type="secondary">Nêu nguyên nhân có thể xảy ra.</Text>
-
-                <Text type="secondary">Đưa đoạn code hoặc ví dụ cụ thể.</Text>
-
-                <Text type="secondary">Kết luận cách sửa ngắn gọn.</Text>
-              </Space>
-            </Card>
-          </aside>
+    <div style={{ fontFamily: 'sans-serif', color: '#232629' }}>
+      
+      {/* 1. KHU VỰC TIÊU ĐỀ BÀI VIẾT VÀ METADATA */}
+      <div style={{ borderBottom: '1px solid #e3e6e8', paddingBottom: '16px', marginBottom: '16px' }}>
+        <Typography.Title level={2} style={{ margin: '0 0 8px 0', fontWeight: 400, color: '#3b4045', fontSize: '1.6rem' }}>
+          {data.title}
+        </Typography.Title>
+        
+        {/* Hàng thông tin phụ dưới tiêu đề */}
+        <div style={{ display: 'flex', gap: '16px', fontSize: '0.8rem', color: '#6a737c' }}>
+          <span>Asked <span style={{ color: '#232629' }}>{data.createdAt ? new Date(data.createdAt).toLocaleDateString() : ''}</span></span>
+          <span>By <span style={{ color: '#0074cc' }}>{data.author.fullName}</span></span>
         </div>
       </div>
+
+      {/* 2. BỐ CỤC CHÍNH: HỆ THỐNG VOTE + NỘI DUNG CÂU HỎI */}
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+        
+        {/* Cột trái: Bộ nút Vote */}
+        <StackVoteButtons 
+          score={data.votes.score} 
+          onVote={async (v) => {
+            try {
+              await questionsService.voteQuestion(data.id, v);
+              await load();
+              message.success('Đã cập nhật vote');
+            } catch {
+              message.error('Vote thất bại');
+            }
+          }}
+        />
+
+        {/* Cột phải: Chi tiết nội dung văn bản */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Nội dung câu hỏi chạy mã HTML */}
+          <div 
+            style={{ lineHeight: '1.6', fontSize: '0.95rem', minHeight: '100px' }}
+            dangerouslySetInnerHTML={{ __html: data.content }} 
+          />
+
+          {/* Tags hiển thị bên dưới nội dung */}
+          <div style={{ marginTop: '24px', display: 'flex', gap: '6px' }}>
+            {data.tags.map((t) => (
+              <Tag 
+                key={t.id} 
+                style={{ 
+                  backgroundColor: '#e1ecf4', 
+                  color: '#39739d', 
+                  borderColor: 'transparent',
+                  padding: '2px 6px',
+                  borderRadius: '3px'
+                }}
+              >
+                {t.name}
+              </Tag>
+            ))}
+          </div>
+
+          <Divider style={{ margin: '16px 0 8px 0' }} />
+
+          {/* 3. KHU VỰC BÌNH LUẬN (COMMENTS LIST) */}
+          <div style={{ paddingLeft: '8px' }}>
+            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#525960', marginBottom: '8px' }}>
+              Comments ({data.comments.length})
+            </div>
+            
+            {/* Vòng lặp kết quả bình luận dạng chuỗi phẳng mỏng */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {data.comments.map((c) => (
+                <div 
+                  key={c.id} 
+                  style={{
+                    padding: '8px 0',
+                    borderBottom: '1px dashed #eff0f1',
+                    fontSize: '0.82rem',
+                    lineHeight: '1.4'
+                  }}
+                >
+                  {/* Điểm vote nhỏ nằm ngang text */}
+                  <span style={{ color: '#b1b4b6', marginRight: '6px', fontWeight: 500 }}>
+                    {c.votes.score > 0 ? `${c.votes.score}` : ''}
+                  </span>
+                  
+                  {/* Nội dung comment */}
+                  <span style={{ color: '#3b4045' }}>{c.content}</span>
+                  
+                  {/* Meta comment: Tên tác giả + Nút tương tác vote comment */}
+                  <span style={{ color: '#9199a1', marginLeft: '6px' }}>
+                    – <span style={{ color: '#0074cc', cursor: 'pointer' }}>{c.author.fullName}</span>{' '}
+                    <span style={{ color: '#9199a1' }}>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}</span>
+                  </span>
+
+                  {/* Cụm chỉnh sửa/Vote mini cho comment */}
+                  <Space size="small" style={{ marginLeft: '12px' }}>
+                    <span 
+                      style={{ color: '#6a737c', cursor: 'pointer', fontSize: '0.75rem' }} 
+                      onClick={() => {
+                        questionsService.voteComment(c.id, 1).then(() => load()).catch(() => {});
+                      }}
+                    >
+                      ▲
+                    </span>
+                    <span 
+                      style={{ color: '#6a737c', cursor: 'pointer', fontSize: '0.75rem' }}
+                      onClick={() => {
+                        questionsService.voteComment(c.id, 0).then(() => load()).catch(() => {});
+                      }}
+                    >
+                      Bỏ vote
+                    </span>
+                  </Space>
+                </div>
+              ))}
+            </div>
+
+            {/* Ô NHẬP BÌNH LUẬN MỚI */}
+            <div style={{ marginTop: '16px' }}>
+              <Input.TextArea
+                rows={2}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder={token ? 'Add a comment...' : 'You must log in to comment'}
+                disabled={!token}
+                style={{ borderRadius: '3px', fontSize: '0.85rem' }}
+              />
+              <Button
+                type="primary"
+                size="small"
+                disabled={!token || !comment.trim()}
+                style={{ 
+                  marginTop: '8px', 
+                  backgroundColor: '#0a95ff', 
+                  borderColor: 'transparent',
+                  borderRadius: '3px',
+                  fontSize: '0.8rem'
+                }}
+                onClick={async () => {
+                  if (!id) return;
+                  try {
+                    await questionsService.addComment(id, { content: comment.trim() });
+                    setComment('');
+                    await load();
+                    message.success('Đã thêm bình luận');
+                  } catch {
+                    message.error('Thêm bình luận thất bại');
+                  }
+                }}
+              >
+                Add comment
+              </Button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
     </div>
   );
 }

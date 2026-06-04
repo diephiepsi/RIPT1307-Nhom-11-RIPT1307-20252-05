@@ -1,76 +1,47 @@
-import { api } from "./api";
-import type {
-  CommentItem,
-  QuestionDetail,
-  QuestionListItem,
-  Tag,
-  VoteSummary,
-} from "../models/qa";
+import { api } from './api';
+import type { QuestionDetail, QuestionListItem, Tag } from '../models/qa';
 
-export type QuestionSort =
-  | "newest"
-  | "oldest"
-  | "hot"
-  | "likes"
-  | "answers"
-  | "views";
-export type QuestionStatus = "all" | "answered" | "unanswered";
+/** API bài đăng — backend mount tại /api/posts (và /api/questions) */
+const POSTS = '/posts';
 
 export const questionsService = {
-  async list(params?: {
-    q?: string;
-    tag?: string;
-    sort?: QuestionSort;
-    status?: QuestionStatus;
-    bookmarked?: boolean;
-  }) {
-    const res = await api.get<QuestionListItem[]>("/questions", { params });
-    return res.data;
+  async list(params: { q?: string; tag?: string } = {}) {
+    const { data } = await api.get<QuestionListItem[]>(POSTS, { params });
+    return data;
   },
-
-  async detail(id: string) {
-    const res = await api.get<QuestionDetail>(`/questions/${id}`);
-    return res.data;
+  async get(id: string) {
+    const { data } = await api.get<QuestionDetail>(`${POSTS}/${id}`);
+    return data;
   },
-
   async create(payload: { title: string; content: string; tags: string[] }) {
-    const res = await api.post("/questions", payload);
-    return res.data;
+    const { data } = await api.post<QuestionDetail>(POSTS, payload);
+    return data;
   },
-
-  async addComment(
-    id: string,
-    payload: { content: string; parentId?: string },
-  ) {
-    const res = await api.post<CommentItem>(
-      `/questions/${id}/comments`,
-      payload,
-    );
-    return res.data;
+  async addComment(questionId: string, payload: { content: string; parentId?: string }) {
+    const { data } = await api.post(`${POSTS}/${questionId}/comments`, payload);
+    return data;
   },
-
-  async vote(id: string, value: -1 | 0 | 1) {
-    const res = await api.post<{ ok: boolean; votes: VoteSummary }>(
-      `/questions/${id}/vote`,
-      { value },
-    );
-    return res.data;
+  async voteQuestion(questionId: string, value: -1 | 0 | 1) {
+    const { data } = await api.post(`${POSTS}/${questionId}/vote`, { value });
+    return data;
   },
-
-  async view(id: string) {
-    const res = await api.post(`/questions/${id}/view`);
-    return res.data;
+  async voteComment(commentId: string, value: -1 | 0 | 1) {
+    const { data } = await api.post(`/comments/${commentId}/vote`, { value });
+    return data;
   },
-
-  async bookmark(id: string) {
-    const res = await api.post<{ ok: boolean; isBookmarked: boolean }>(
-      `/questions/${id}/bookmark`,
-    );
-    return res.data;
-  },
-
   async tags() {
-    const res = await api.get<Tag[]>("/tags");
-    return res.data;
+    const { data } = await api.get<Tag[]>('/tags');
+    return data;
   },
+
+  getNotifications: async () => {
+    return api.get<any[]>('/notifications');
+  },
+
+  // Thêm hàm báo đã đọc hết
+  markNotificationsAsRead: async () => {
+    return api.post('/notifications/read-all');
+  }
 };
+
+
