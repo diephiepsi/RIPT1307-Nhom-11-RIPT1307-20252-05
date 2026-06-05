@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "author": "diephiepsi <diepminh20060911@gmail.com>",
+  "scripts": {
+    "dev": "umi dev",
+    "build": "umi build",
+    "postinstall": "umi setup",
+    "setup": "umi setup",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.2.5",
+    "@umijs/plugins": "^4.6.59",
+    "antd": "^6.4.3",
+    "axios": "^1.17.0",
+    "umi": "^4.6.59"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.33",
+    "@types/react-dom": "^18.0.11",
+    "typescript": "^5.0.3"
+  }
+}

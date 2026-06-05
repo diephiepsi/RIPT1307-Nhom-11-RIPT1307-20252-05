@@ -1,71 +1,131 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import type { Prisma } from '@prisma/client';
-import { prisma } from '../db';
-import { authOptional, authRequired } from '../middlewares/auth';
-import { summarizeVotes } from '../utils/voting';
-import { sendMail } from '../services/mail';
+import { Router } from "express";
+import { z } from "zod";
+import type { Prisma } from "@prisma/client";
+
+import { prisma } from "../db";
+import { authOptional, authRequired } from "../middlewares/auth";
+import { summarizeVotes } from "../utils/voting";
+import { sendMail } from "../services/mail";
 
 const router = Router();
 
-// ============================================================
-// 1. LẤY DANH SÁCH BÀI VIẾT (Public Feed - Chỉ lấy bài ĐÃ DUYỆT)
-// ============================================================
-router.get('/', authOptional, async (req, res) => {
-  const q = typeof req.query.q === 'string' ? req.query.q : undefined;
-  const tag = typeof req.query.tag === 'string' ? req.query.tag : undefined;
+function mapQuestionListItem(x: any, myUserId?: string) {
+  const votes = summarizeVotes(x.votes ?? [], myUserId);
+  const commentsCount = x._count?.comments ?? x.comments?.length ?? 0;
+  const viewsCount = x.viewsCount ?? 0;
+  const isBookmarked = Boolean(x.bookmarks?.length);
+  const hotScore =
+    votes.likesCount * 3 +
+    commentsCount * 2 +
+    viewsCount -
+    votes.dislikesCount * 2;
+
+  return {
+    id: x.id,
+    title: x.title,
+    createdAt: x.createdAt.toISOString(),
+    updatedAt: x.updatedAt?.toISOString?.() ?? undefined,
+    author: x.author,
+    tags: (x.tags ?? []).map((t: any) => t.tag),
+    votes,
+    likesCount: votes.likesCount,
+    dislikesCount: votes.dislikesCount,
+    answersCount: commentsCount,
+    commentsCount,
+    viewsCount,
+    isBookmarked,
+    hotScore,
+  };
+}
+
+function mapComment(c: any, myUserId?: string) {
+  const votes = summarizeVotes(c.votes ?? [], myUserId);
+  return {
+    id: c.id,
+    content: c.content,
+    parentId: c.parentId,
+    createdAt: c.createdAt.toISOString(),
+    author: c.author,
+    votes,
+    likesCount: votes.likesCount,
+    dislikesCount: votes.dislikesCount,
+  };
+}
+
+router.get("/", authOptional, async (req, res) => {
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
+  const tag =
+    typeof req.query.tag === "string" ? req.query.tag.trim() : undefined;
+  const sort = typeof req.query.sort === "string" ? req.query.sort : "newest";
+  const status =
+    typeof req.query.status === "string" ? req.query.status : "all";
+  const onlyBookmarked = req.query.bookmarked === "true";
+
+  const where: Prisma.QuestionWhereInput = {
+    deletedAt: null,
+    isApproved: true,
+    ...(q
+      ? {
+          OR: [{ title: { contains: q } }, { content: { contains: q } }],
+        }
+      : {}),
+    ...(tag
+      ? {
+          tags: { some: { tag: { name: tag } } },
+        }
+      : {}),
+    ...(onlyBookmarked && req.user?.id
+      ? {
+          bookmarks: { some: { userId: req.user.id } },
+        }
+      : {}),
+  };
 
   const questions = await prisma.question.findMany({
-    where: {
-      deletedAt: null,
-      isApproved: true, // Chỉ lấy những bài đã được Admin duyệt
-      ...(q
-        ? {
-            OR: [{ title: { contains: q } }, { content: { contains: q } }],
-          }
-        : {}),
-      ...(tag
-        ? {
-            tags: { some: { tag: { name: tag } } },
-          }
-        : {}),
-    },
-    orderBy: { createdAt: 'desc' },
+    where,
+    orderBy:
+      sort === "oldest"
+        ? { createdAt: "asc" }
+        : sort === "views"
+          ? { viewsCount: "desc" }
+          : { createdAt: "desc" },
     include: {
       author: { select: { id: true, fullName: true, role: true } },
       tags: { include: { tag: true } },
       votes: { select: { value: true, userId: true } },
-      _count: { select: { comments: true } },
+      bookmarks: req.user?.id
+        ? { where: { userId: req.user.id }, select: { id: true } }
+        : false,
+      _count: { select: { comments: { where: { deletedAt: null } } } },
     },
   });
 
-  res.json(
-    questions.map((x: typeof questions[number]) => ({
-      id: x.id,
-      title: x.title,
-      createdAt: x.createdAt.toISOString(),
-      author: x.author,
-      tags: x.tags.map((t: (typeof x.tags)[number]) => t.tag),
-      votes: summarizeVotes(x.votes, req.user?.id),
-      answersCount: x._count.comments,
-    })),
-  );
+  let rows = questions.map((x) => mapQuestionListItem(x, req.user?.id));
+
+  if (status === "unanswered") rows = rows.filter((x) => x.answersCount === 0);
+  if (status === "answered") rows = rows.filter((x) => x.answersCount > 0);
+  if (sort === "likes") rows.sort((a, b) => b.likesCount - a.likesCount);
+  if (sort === "answers") rows.sort((a, b) => b.answersCount - a.answersCount);
+  if (sort === "hot") rows.sort((a, b) => b.hotScore - a.hotScore);
+
+  res.json(rows);
 });
 
-// ============================================================
-// 2. XEM CHI TIẾT BÀI VIẾT
-// ============================================================
-router.get('/:id', authOptional, async (req, res) => {
+router.get("/:id", authOptional, async (req, res) => {
   const id = String(req.params.id);
+
   const q = await prisma.question.findFirst({
     where: { id, deletedAt: null },
     include: {
       author: { select: { id: true, fullName: true, role: true } },
       tags: { include: { tag: true } },
       votes: { select: { value: true, userId: true } },
+      bookmarks: req.user?.id
+        ? { where: { userId: req.user.id }, select: { id: true } }
+        : false,
       comments: {
         where: { deletedAt: null },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
         select: {
           id: true,
           content: true,
@@ -77,32 +137,36 @@ router.get('/:id', authOptional, async (req, res) => {
       },
     },
   });
-  
-  if (!q) return res.status(404).json({ message: 'Không tìm thấy bài viết' });
 
-  // Kiểm tra quyền xem nếu bài đăng chưa được phê duyệt
+  if (!q) return res.status(404).json({ message: "Không tìm thấy bài viết" });
+
   if (!q.isApproved) {
-    if (!req.user || (req.user.role !== 'ADMIN' && req.user.id !== q.authorId)) {
-      return res.status(403).json({ message: 'Bài viết này đang chờ Quản trị viên duyệt.' });
+    if (
+      !req.user ||
+      (req.user.role !== "ADMIN" && req.user.id !== q.authorId)
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Bài viết này đang chờ Quản trị viên duyệt." });
     }
   }
+
+  const votes = summarizeVotes(q.votes, req.user?.id);
 
   res.json({
     id: q.id,
     title: q.title,
     content: q.content,
     createdAt: q.createdAt.toISOString(),
+    updatedAt: q.updatedAt.toISOString(),
     author: q.author,
-    tags: q.tags.map((t: (typeof q.tags)[number]) => t.tag),
-    votes: summarizeVotes(q.votes, req.user?.id),
-    comments: q.comments.map((c: (typeof q.comments)[number]) => ({
-      id: c.id,
-      content: c.content,
-      parentId: c.parentId,
-      createdAt: c.createdAt.toISOString(),
-      author: c.author,
-      votes: summarizeVotes(c.votes, req.user?.id),
-    })),
+    tags: q.tags.map((t) => t.tag),
+    votes,
+    likesCount: votes.likesCount,
+    dislikesCount: votes.dislikesCount,
+    viewsCount: q.viewsCount ?? 0,
+    isBookmarked: Boolean((q as any).bookmarks?.length),
+    comments: q.comments.map((c) => mapComment(c, req.user?.id)),
   });
 });
 
@@ -112,67 +176,57 @@ const createSchema = z.object({
   tags: z.array(z.string().min(1)).min(1),
 });
 
-// ============================================================
-// 3. ĐĂNG BÀI VIẾT MỚI
-// ============================================================
-router.post('/', authRequired, async (req, res) => {
+router.post("/", authRequired, async (req, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+
   const { title, content, tags } = parsed.data;
 
-  const created = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    const q = await tx.question.create({
-      data: {
-        title,
-        content,
-        authorId: req.user!.id,
-        // isApproved tự động bằng false theo Schema định nghĩa trong prisma
-      },
-    });
-
-    for (const tagName of tags) {
-      const t = await tx.tag.upsert({
-        where: { name: tagName },
-        update: {},
-        create: { name: tagName },
+  const created = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      const q = await tx.question.create({
+        data: {
+          title,
+          content,
+          authorId: req.user!.id,
+        },
       });
-      await tx.questionTag.create({ data: { questionId: q.id, tagId: t.id } });
-    }
 
-    return q;
-  });
+      for (const rawTagName of tags) {
+        const tagName = rawTagName.trim();
+        if (!tagName) continue;
+        const t = await tx.tag.upsert({
+          where: { name: tagName },
+          update: {},
+          create: { name: tagName },
+        });
+        await tx.questionTag.create({
+          data: { questionId: q.id, tagId: t.id },
+        });
+      }
 
-  // Tìm và gửi thông báo kiểm duyệt bài đăng qua Mail đến các Admin hệ thống
+      return q;
+    },
+  );
+
   const recipients = await prisma.user.findMany({
-    where: { role: 'ADMIN', locked: false }, 
+    where: { role: "ADMIN", locked: false },
     select: { email: true },
   });
-  
+
   await Promise.allSettled(
-    recipients.map((u: (typeof recipients)[number]) =>
+    recipients.map((u) =>
       sendMail({
         to: u.email,
-        subject: 'Yêu cầu duyệt bài đăng mới trên diễn đàn',
-        html: `<p><b>${title}</b></p><p>Vừa có một bài đăng mới đang chờ bạn duyệt. Vào hệ thống Admin để kiểm tra và duyệt bài.</p>`,
+        subject: "Yêu cầu duyệt bài đăng mới trên diễn đàn",
+        html: `<p><b>${title}</b></p><p>Vừa có một bài đăng mới đang chờ bạn duyệt.</p>`,
       }),
     ),
   );
 
-  const detail = await prisma.question.findFirst({
-    where: { id: created.id },
-    include: { author: { select: { id: true, fullName: true, role: true } }, tags: { include: { tag: true } }, votes: true, comments: true },
-  });
-  if (!detail) return res.status(500).json({ message: 'Create failed' });
-
   res.status(201).json({
-    id: detail.id,
-    title: detail.title,
-    content: detail.content,
-    createdAt: detail.createdAt.toISOString(),
-    author: detail.author,
-    tags: detail.tags.map((t: (typeof detail.tags)[number]) => t.tag),
-    votes: summarizeVotes([], req.user?.id),
-    comments: [],
+    id: created.id,
+    message: "Đăng câu hỏi thành công, đang chờ duyệt.",
   });
 });
 
@@ -181,145 +235,126 @@ const addCommentSchema = z.object({
   parentId: z.string().optional(),
 });
 
-// ============================================================
-// 4. BÌNH LUẬN (Tối ưu hóa phản hồi lập tức và bọc lót chống sập)
-// ============================================================
-router.post('/:id/comments', authRequired, async (req, res) => {
+router.post("/:id/comments", authRequired, async (req, res) => {
   const parsed = addCommentSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+
   const questionId = String(req.params.id);
 
-  try {
-    const q = await prisma.question.findFirst({
-      where: { id: questionId, deletedAt: null },
-      include: { author: { select: { id: true, email: true, fullName: true } } },
-    });
-    if (!q) return res.status(404).json({ message: 'Not found' });
+  const q = await prisma.question.findFirst({
+    where: { id: questionId, deletedAt: null },
+    include: { author: { select: { email: true, fullName: true } } },
+  });
 
-    if (parsed.data.parentId) {
-      const parent = await prisma.comment.findFirst({
-        where: { id: parsed.data.parentId, questionId, deletedAt: null },
-      });
-      if (!parent) return res.status(400).json({ message: 'Parent comment not found' });
-    }
+  if (!q) return res.status(404).json({ message: "Không tìm thấy câu hỏi" });
 
-    // 1. Tạo bản ghi bình luận mới và gộp kèm dữ liệu author để trả về frontend render luôn
-    const c = await prisma.comment.create({
-      data: {
-        id: 'cmt_' + Date.now(),
+  if (parsed.data.parentId) {
+    const parent = await prisma.comment.findFirst({
+      where: {
+        id: parsed.data.parentId,
         questionId,
-        authorId: req.user!.id,
-        content: parsed.data.content,
-        parentId: parsed.data.parentId ?? null,
+        deletedAt: null,
       },
-      include: {
-        author: { select: { id: true, fullName: true, role: true } }
-      }
+      select: { id: true },
     });
 
-    // 2. LOGIC BỔ TRỢ (NOTIFICATION + MAIL): Được cô lập hoàn toàn bằng try-catch cá nhân
-    try {
-      // Gửi chuông thông báo in-app (chỉ gửi nếu không phải tự mình bình luận bài của mình)
-      if (q.authorId !== req.user!.id) {
-        const u = req.user as any;
-        const senderName = u?.fullName || u?.full_name || u?.email || 'Một thành viên';
-
-        await prisma.notification.create({
-          data: {
-            id: 'noti_c_' + Date.now(),
-            recipientId: q.authorId,
-            senderId: req.user!.id,
-            type: 'COMMENT',
-            content: `${senderName} đã bình luận về bài viết của bạn`,
-            targetId: questionId,
-          },
-        });
-        console.log("=> [Notification] Đã ghi nhận thông báo bình luận thành công.");
-      }
-
-      // Gửi email thông báo chạy ngầm độc lập
-      if (q.author.email) {
-        void sendMail({
-          to: q.author.email,
-          subject: 'Có người trả lời bình luận/câu hỏi của bạn',
-          html: `<p>Chào ${q.author.fullName || 'bạn'},</p><p>Có bình luận mới cho câu hỏi: <b>${q.title}</b></p>`,
-        }).catch((mailErr) => {
-          console.error('⚠️ [Mail ngầm] gửi mail thất bại (được tự động bỏ qua):', mailErr);
-        });
-      }
-    } catch (subError) {
-      console.error('⚠️ [Side-effects] Lỗi xử lý thông báo/mail phụ:', subError);
+    if (!parent) {
+      return res.status(400).json({ message: "Không tìm thấy bình luận cha" });
     }
-
-    // 3. Trả về cấu trúc JSON chứa đầy đủ thực thể để giao diện nạp trực tiếp mà không cần F5
-    return res.status(201).json({
-      id: c.id,
-      content: c.content,
-      parentId: c.parentId,
-      createdAt: c.createdAt.toISOString(),
-      author: c.author,
-      votes: { score: 0, userVote: 0 } // Giá trị điểm mặc định cho một bình luận mới tinh
-    });
-
-  } catch (globalError) {
-    console.error("CRITICAL ERROR (Comment Route bị sập hoàn toàn):", globalError);
-    return res.status(500).json({ error: "Lỗi hệ thống xử lý bình luận từ server" });
   }
+
+  const c = await prisma.comment.create({
+    data: {
+      questionId,
+      authorId: req.user!.id,
+      content: parsed.data.content,
+      parentId: parsed.data.parentId ?? null,
+    },
+    include: {
+      author: { select: { id: true, fullName: true, role: true } },
+      votes: { select: { value: true, userId: true } },
+    },
+  });
+
+  // Gửi mail chỉ là phụ, không được làm fail chức năng reply/comment.
+  void sendMail({
+    to: q.author.email,
+    subject: "Có người trả lời câu hỏi của bạn",
+    html: `
+      <p>Chào ${q.author.fullName},</p>
+      <p>Có bình luận mới cho câu hỏi: <b>${q.title}</b></p>
+    `,
+  }).catch((err) => {
+    console.error("[mail] comment notification failed:", err?.message || err);
+  });
+
+  return res.status(201).json(mapComment(c, req.user?.id));
 });
 
-// ============================================================
-// 5. VOTE BÀI VIẾT
-// ============================================================
-router.post('/:id/vote', authRequired, async (req, res) => {
-  const schema = z.object({ value: z.union([z.literal(-1), z.literal(0), z.literal(1)]) });
+router.post("/:id/vote", authRequired, async (req, res) => {
+  const schema = z.object({
+    value: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
+  });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+
   const questionId = String(req.params.id);
+  const q = await prisma.question.findFirst({
+    where: { id: questionId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!q) return res.status(404).json({ message: "Not found" });
 
-  try {
-    const q = await prisma.question.findFirst({ 
-      where: { id: questionId, deletedAt: null }, 
-      select: { id: true, authorId: true } 
+  const value = parsed.data.value;
+
+  if (value === 0) {
+    await prisma.vote.deleteMany({
+      where: { userId: req.user!.id, questionId },
     });
-    if (!q) return res.status(404).json({ message: 'Not found' });
-
-    const value = parsed.data.value;
-    if (value === 0) {
-      await prisma.vote.deleteMany({ where: { userId: req.user!.id, questionId } });
-    } else {
-      await prisma.vote.upsert({
-        where: { userId_questionId: { userId: req.user!.id, questionId } },
-        update: { value },
-        create: { userId: req.user!.id, questionId, value },
-      });
-
-      // Tạo thông báo khi có người UPVOTE bài viết (value = 1)
-      try {
-        if (value === 1 && q.authorId !== req.user!.id) {
-          const u = req.user as any;
-          const senderName = u?.fullName || u?.full_name || u?.email || 'Một thành viên';
-
-          await prisma.notification.create({
-            data: {
-              id: 'noti_vq_' + Date.now(),
-              recipientId: q.authorId,
-              senderId: req.user!.id,
-              type: 'LIKE',
-              content: `${senderName} đã thích bài viết của bạn`,
-              targetId: questionId,
-            }
-          });
-        }
-      } catch (notifError) {
-        console.error("⚠️ Lỗi ngầm khi tạo thông báo tương tác Vote bài viết:", notifError);
-      }
-    }
-    return res.json({ ok: true });
-
-  } catch (globalError) {
-    console.error("CRITICAL ERROR (Vote Route sập):", globalError);
-    return res.status(500).json({ error: "Lỗi hệ thống xử lý tương tác vote" });
+  } else {
+    await prisma.vote.upsert({
+      where: { userId_questionId: { userId: req.user!.id, questionId } },
+      update: { value },
+      create: { userId: req.user!.id, questionId, value },
+    });
   }
+
+  const votes = await prisma.vote.findMany({
+    where: { questionId },
+    select: { value: true, userId: true },
+  });
+  res.json({ ok: true, votes: summarizeVotes(votes, req.user!.id) });
+});
+
+router.post("/:id/view", async (req, res) => {
+  const questionId = String(req.params.id);
+  const q = await prisma.question.updateMany({
+    where: { id: questionId, deletedAt: null, isApproved: true },
+    data: { viewsCount: { increment: 1 } },
+  });
+  if (q.count === 0) return res.status(404).json({ message: "Not found" });
+  res.json({ ok: true });
+});
+
+router.post("/:id/bookmark", authRequired, async (req, res) => {
+  const questionId = String(req.params.id);
+  const q = await prisma.question.findFirst({
+    where: { id: questionId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!q) return res.status(404).json({ message: "Not found" });
+
+  const existed = await prisma.bookmark.findUnique({
+    where: { userId_questionId: { userId: req.user!.id, questionId } },
+  });
+
+  if (existed) {
+    await prisma.bookmark.delete({ where: { id: existed.id } });
+    return res.json({ ok: true, isBookmarked: false });
+  }
+
+  await prisma.bookmark.create({ data: { userId: req.user!.id, questionId } });
+  res.json({ ok: true, isBookmarked: true });
 });
 
 export const questionsRouter = router;
