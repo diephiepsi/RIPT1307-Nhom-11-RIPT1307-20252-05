@@ -78,8 +78,7 @@ router.get("/", authOptional, async (req, res) => {
     const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
     const tag =
       typeof req.query.tag === "string" ? req.query.tag.trim() : undefined;
-    const sort =
-      typeof req.query.sort === "string" ? req.query.sort : "newest";
+    const sort = typeof req.query.sort === "string" ? req.query.sort : "newest";
     const status =
       typeof req.query.status === "string" ? req.query.status : "all";
     const onlyBookmarked = req.query.bookmarked === "true";
@@ -279,7 +278,7 @@ router.get("/:id", authOptional, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy bài viết" });
     }
 
-    // Nếu bài chưa duyệt, chỉ ADMIN hoặc chính tác giả được xem
+    
     if (!q.isApproved) {
       if (
         !req.user ||
@@ -376,7 +375,6 @@ router.post("/", authRequired, async (req, res) => {
       },
     );
 
-    // Gửi mail cho admin để duyệt bài
     const recipients = await prisma.user.findMany({
       where: {
         role: "ADMIN",
@@ -387,7 +385,8 @@ router.post("/", authRequired, async (req, res) => {
       },
     });
 
-    await Promise.allSettled(
+    
+    void Promise.allSettled(
       recipients.map((u) =>
         sendMail({
           to: u.email,

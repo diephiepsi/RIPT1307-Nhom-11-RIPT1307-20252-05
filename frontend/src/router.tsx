@@ -8,6 +8,8 @@ import { QuestionDetailPage } from "./pages/questions/QuestionDetailPage";
 import { AskQuestionPage } from "./pages/questions/AskQuestionPage";
 import { AdminPostsPage } from "./pages/admin/AdminPostsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,15 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <AskQuestionPage />
+          </RequireAuth>
+        ),
+      },
+      
+      {
+        path: "admin/dashboard",
+        element: (
+          <RequireAuth roles={["ADMIN"]}>
+            <AdminDashboard />
           </RequireAuth>
         ),
       },

@@ -124,4 +124,23 @@ router.post('/users/:id/reset-password', async (req, res) => {
     }).catch(err => console.error("Lỗi gửi mail:", err));
     res.json({ ok: true });
 });
+// 3. Thống kê hệ thống
+router.get('/stats', async (_req, res) => {
+    try {
+        const totalUsers = await db_1.prisma.user.count();
+        const totalPosts = await db_1.prisma.question.count({ where: { deletedAt: null } });
+        const pendingPosts = await db_1.prisma.question.count({ where: { deletedAt: null, isApproved: false } });
+        const totalComments = await db_1.prisma.comment.count({ where: { deletedAt: null } });
+        res.json({
+            totalUsers,
+            totalPosts,
+            pendingPosts,
+            totalComments
+        });
+    }
+    catch (error) {
+        console.error("[GET /admin/stats] error:", error);
+        res.status(500).json({ message: "Lỗi lấy thống kê" });
+    }
+});
 exports.adminRouter = router;

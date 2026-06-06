@@ -16,6 +16,7 @@ function getDbAdapter() {
         password: decodeURIComponent(u.password),
         database,
         connectionLimit: 10,
+        allowPublicKeyRetrieval: true,
     });
 }
 exports.prisma = new client_1.PrismaClient({

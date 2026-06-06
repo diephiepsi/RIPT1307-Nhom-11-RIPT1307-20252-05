@@ -16,7 +16,6 @@ const comments_1 = require("./routes/comments");
 const admin_1 = require("./routes/admin");
 const notifications_1 = require("./routes/notifications");
 const app = (0, express_1.default)();
-app.use('/api/notifications', notifications_1.notificationRoutes);
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({ origin: true, credentials: true }));
 app.use(express_1.default.json({ limit: '2mb' }));

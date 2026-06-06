@@ -26,6 +26,7 @@ function useSelectedKey() {
   const p = loc.pathname;
   if (p.startsWith('/admin/users')) return '/admin/users';
   if (p.startsWith('/admin/posts')) return '/admin/posts';
+  if (p.startsWith('/admin/dashboard')) return '/admin/dashboard';
   if (p.startsWith('/ask')) return '/ask';
   if (p.startsWith('/login')) return '/login';
   if (p.startsWith('/register')) return '/register';
@@ -145,6 +146,7 @@ export function AppShell() {
     sidebarItems.push(
       { key: '/admin/posts', label: <Link to="/admin/posts">⚙️ Quản trị bài</Link> },
       { key: '/admin/users', label: <Link to="/admin/users">⚙️ Quản trị user</Link> },
+      { key: '/admin/dashboard', label: <Link to="/admin/dashboard">📊 Thống kê</Link> },
     );
   }
 
