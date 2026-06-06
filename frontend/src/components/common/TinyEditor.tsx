@@ -11,7 +11,7 @@ type TinyEditorProps = {
 export function TinyEditor({ value = '', onChange }: TinyEditorProps) {
   if (!TINYMCE_API_KEY) {
     return (
-      <div style={{ padding: 12, border: '1px dashed #faad14', borderRadius: 8, background: '#fffbe6' }}>
+      <div style={{ padding: 12, border: '1px dashed var(--color-accent)', borderRadius: 8, background: 'var(--color-surface)' }}>
         Thiếu API key TinyMCE. Thêm vào <code>frontend/.env</code>:<br />
         <code>VITE_TINYMCE_API_KEY=9vdql462mzulq7sd182n06zk9l0vpqez8j69exuifwnvijyd</code>
         <br />

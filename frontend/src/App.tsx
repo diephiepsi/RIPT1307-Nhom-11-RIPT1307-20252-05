@@ -25,7 +25,7 @@ export function App({ children }: PropsWithChildren) {
   // Trong lúc app đang đợi API phản hồi thông tin user, hiện màn hình chờ phẳng tinh tế
   if (checkingAuth) {
     return (
-      <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' }}>
+      <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
         <Spin size="large" />
       </div>
     );

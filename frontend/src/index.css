@@ -1,12 +1,12 @@
 /* src/index.css */
 :root {
-  --so-orange: #f48225;
-  --so-light-bg: #f8f9fa;
-  --so-border: #e3e6e8;
-  --so-dark-text: #232629;
-  --so-blue: #0a95ff;
-  --so-light-blue: #e1ecf4;
-  --so-blue-hover: #0074cc;
+  --so-orange: var(--color-accent);
+  --so-light-bg: var(--color-bg);
+  --so-border: var(--color-border);
+  --so-dark-text: var(--color-text);
+  --so-blue: var(--color-accent);
+  --so-light-blue: var(--color-surface);
+  --so-blue-hover: var(--color-accent);
   --header-height: 48px;
 }
 
@@ -30,12 +30,12 @@ body {
   border-radius: 0 !important;
   margin-inline: 0 !important;
   width: 100% !important;
-  color: #525960 !important;
+  color: var(--color-muted) !important;
 }
 
 .ant-menu-item-selected {
-  background-color: #f1f2f3 !important;
-  color: #0c0d0e !important;
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
   font-weight: bold;
-  border-right: 3px solid #f48225 !important; /* Vạch cam bên phải item đang chọn */
+  border-right: 3px solid var(--so-orange) !important; /* Vạch cam bên phải item đang chọn */
 }

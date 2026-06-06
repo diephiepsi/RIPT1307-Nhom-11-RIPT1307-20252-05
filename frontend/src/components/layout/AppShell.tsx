@@ -6,7 +6,6 @@ import { logout } from '../../store/authSlice';
 import { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import Footer from './Footer';
-import ThemeToggle from './ThemeToggle';
 import { storage } from '../../services/storage';
 
 const { Header, Content, Sider } = Layout;
@@ -85,7 +84,7 @@ export function AppShell() {
 
   const notificationContent = (
     <div style={{ width: '340px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '5px', borderBottom: '1px solid #f0f0f0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '5px', borderBottom: '1px solid var(--color-border)' }}>
         <span style={{ fontWeight: 600 }}>Thông báo</span>
         {unreadCount > 0 && (
           <Button type="link" size="small" onClick={markAllAsRead} style={{ padding: 0, fontSize: '0.8rem' }}>
@@ -101,7 +100,7 @@ export function AppShell() {
           <List.Item 
             style={{ 
               padding: '8px 8px', 
-              backgroundColor: !item.isRead ? '#f4f8fa' : 'transparent',
+              backgroundColor: !item.isRead ? 'rgba(10,149,255,0.06)' : 'transparent',
               borderRadius: '4px',
               cursor: 'pointer',
               marginBottom: '4px',
@@ -116,17 +115,17 @@ export function AppShell() {
               avatar={
                 <Avatar 
                   size="small" 
-                  style={{ backgroundColor: !item.isRead ? '#0a95ff' : '#cbd5e1' }}
+                  style={{ backgroundColor: !item.isRead ? 'var(--color-accent)' : 'var(--color-border)' }}
                   icon={item.type === 'LIKE' ? '❤️' : '💬'} 
                 />
               }
               title={
-                <span style={{ fontSize: '0.82rem', fontWeight: !item.isRead ? 600 : 400, color: '#232629' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: !item.isRead ? 600 : 400, color: 'var(--color-text)' }}>
                   {item.content}
                 </span>
               }
               description={
-                <span style={{ fontSize: '0.7rem', color: '#9199a1' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--color-muted)' }}>
                   {formatTime(item.createdAt)}
                 </span>
               }
@@ -152,7 +151,7 @@ export function AppShell() {
   const isAuthPage = selectedKey === '/login' || selectedKey === '/register';
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
       
       {/* --- HEADER --- */}
       <Header style={{
@@ -162,9 +161,9 @@ export function AppShell() {
         width: '100%',
         height: '50px',
         lineHeight: '50px',
-        backgroundColor: '#ffffff',
-        borderTop: '3px solid #f48225',
-        borderBottom: '1px solid #e3e6e8',
+        backgroundColor: 'var(--color-surface)',
+        borderTop: '3px solid var(--color-accent)',
+        borderBottom: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -175,14 +174,13 @@ export function AppShell() {
           <Typography.Title 
             level={4} 
             onClick={() => nav('/')}
-            style={{ color: '#0c0d0e', margin: 0, cursor: 'pointer', fontFamily: 'sans-serif', fontSize: '1.3rem' }}
+            style={{ color: 'var(--color-text)', margin: 0, cursor: 'pointer', fontFamily: 'sans-serif', fontSize: '1.3rem' }}
           >
-            UniBrain<span style={{ fontWeight: 300, color: '#f48225' }}>.com</span>
+            UniBrain<span style={{ fontWeight: 300, color: 'var(--color-accent)' }}>.com</span>
           </Typography.Title>
         </Space>
 
         <Space size="middle">
-          <ThemeToggle />
           {user ? (
             <>
               {/* --- NÚT CHUÔNG THÔNG BÁO --- */}
@@ -192,10 +190,10 @@ export function AppShell() {
                 placement="bottomRight"
                 arrow={{ pointAtCenter: true }}
               >
-                <Badge count={unreadCount} size="small" offset={[-2, 4]} style={{ backgroundColor: '#f48225' }}>
+                <Badge count={unreadCount} size="small" offset={[-2, 4]} style={{ backgroundColor: 'var(--color-accent)' }}>
                   <Button 
                     type="text" 
-                    icon={<BellOutlined style={{ fontSize: '1.2rem', color: '#525960' }} />} 
+                    icon={<BellOutlined style={{ fontSize: '1.2rem', color: 'var(--color-muted)' }} />} 
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -206,14 +204,14 @@ export function AppShell() {
                 </Badge>
               </Popover>
 
-              <Typography.Text style={{ color: '#232629', fontSize: '0.85rem' }}>
-                {user.fullName} (<span style={{ color: '#0074cc', fontWeight: 'bold' }}>{user.role}</span>)
+              <Typography.Text style={{ color: 'var(--color-text)', fontSize: '0.85rem' }}>
+                {user.fullName} (<span style={{ color: 'var(--color-accent)', fontWeight: 'bold' }}>{user.role}</span>)
               </Typography.Text>
               
               <Button
                 size="small"
                 style={{
-                  backgroundColor: '#f48225',
+                  backgroundColor: 'var(--color-accent)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '3px',
@@ -232,7 +230,7 @@ export function AppShell() {
             <>
               <Button 
                 size="small"
-                style={{ backgroundColor: '#e1ecf4', color: '#39739d', borderColor: '#7aa7c7', borderRadius: '3px' }} 
+                style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-accent)', borderColor: 'var(--color-border)', borderRadius: '3px' }} 
                 onClick={() => nav('/login')}
               >
                 Đăng nhập
@@ -240,7 +238,7 @@ export function AppShell() {
               <Button 
                 type="primary" 
                 size="small"
-                style={{ backgroundColor: '#0a95ff', borderColor: 'transparent', borderRadius: '3px' }} 
+                style={{ backgroundColor: 'var(--color-accent)', borderColor: 'transparent', borderRadius: '3px' }} 
                 onClick={() => nav('/register')}
               >
                 Đăng ký
@@ -258,7 +256,7 @@ export function AppShell() {
             theme="light"
             style={{
               background: 'transparent',
-              borderRight: '1px solid #e3e6e8',
+              borderRight: '1px solid var(--color-border)',
               height: 'calc(100vh - 50px)',
               position: 'sticky',
               top: '50px',
@@ -275,7 +273,7 @@ export function AppShell() {
           </Sider>
         )}
 
-        <Content style={{ padding: '24px', backgroundColor: '#ffffff', minHeight: 'calc(100vh - 50px)', flex: 1 }}>
+        <Content style={{ padding: '24px', backgroundColor: 'var(--color-surface)', minHeight: 'calc(100vh - 50px)', flex: 1 }}>
           <Outlet />
         </Content>
         </Layout>

@@ -1,6 +1,6 @@
 .sidebar-left {
   width: 164px;
-  border-right: 1px solid var(--so-border);
+  border-right: 1px solid var(--color-border);
   height: calc(100vh - var(--header-height));
   position: sticky;
   top: var(--header-height);
@@ -17,26 +17,26 @@
 
 .nav-item {
   padding: 8px 8px 8px 12px;
-  color: #525960;
+  color: var(--color-muted);
   cursor: pointer;
 }
 
 .nav-item:hover {
-  color: #0c0d0e;
+  color: var(--color-text);
 }
 
 .nav-heading {
   padding: 12px 8px 4px 12px;
   font-weight: bold;
   font-size: 0.7rem;
-  color: #6a737c;
+  color: var(--color-muted);
 }
 
 .nav-item.active {
   font-weight: bold;
-  color: #0c0d0e;
-  background-color: #f1f2f3;
-  border-right: 3px solid var(--so-orange);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border-right: 3px solid var(--color-accent);
 }
 
 .pl-4 {

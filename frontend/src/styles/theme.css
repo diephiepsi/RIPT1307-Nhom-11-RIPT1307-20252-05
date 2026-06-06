@@ -4,7 +4,10 @@
   --ub-shadow: 0 6px 18px rgba(12,12,12,0.06);
   --ub-shadow-strong: 0 10px 30px rgba(12,12,12,0.08);
   --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #e6eef4;
   --color-primary: #0f1724; /* neutral deep tone */
+  --color-text: #0f1724;
   --color-muted: #6b7280;
   --color-accent: #0a95ff; /* use sparingly */
 }
@@ -12,7 +15,10 @@
 /* Dark theme overrides applied when <html data-theme="dark"> */
 [data-theme="dark"] {
   --color-bg: #0a0f17;
+  --color-surface: #07101a;
+  --color-border: rgba(255,255,255,0.06);
   --color-primary: #e6eef9; /* light text */
+  --color-text: #e6eef9;
   --color-muted: #9aa4b2;
   --color-accent: #3ea6ff;
   --ub-shadow: 0 6px 18px rgba(0,0,0,0.5);
@@ -33,7 +39,7 @@ html, body, #root {
 }
 
 .ub-card {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border-radius: var(--ub-radius);
   box-shadow: var(--ub-shadow);
   border: 0;
