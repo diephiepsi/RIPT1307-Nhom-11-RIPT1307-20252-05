@@ -278,7 +278,6 @@ router.get("/:id", authOptional, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy bài viết" });
     }
 
-    
     if (!q.isApproved) {
       if (
         !req.user ||
@@ -337,6 +336,25 @@ router.post("/", authRequired, async (req, res) => {
 
     const { title, content, tags } = parsed.data;
 
+    // Chống spam: Kiểm tra xem user có đăng bài nào trong vòng 30 giây qua không
+    const recentQuestion = await prisma.question.findFirst({
+      where: {
+        authorId: req.user!.id,
+        createdAt: {
+          gte: new Date(Date.now() - 30 * 1000), // 30 giây
+        },
+      },
+    });
+
+    if (recentQuestion) {
+      return res
+        .status(429)
+        .json({
+          message:
+            "Bạn đang thao tác quá nhanh. Vui lòng chờ 30 giây trước khi đăng bài tiếp theo.",
+        });
+    }
+
     const created = await prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const q = await tx.question.create({
@@ -385,7 +403,6 @@ router.post("/", authRequired, async (req, res) => {
       },
     });
 
-    
     void Promise.allSettled(
       recipients.map((u) =>
         sendMail({
