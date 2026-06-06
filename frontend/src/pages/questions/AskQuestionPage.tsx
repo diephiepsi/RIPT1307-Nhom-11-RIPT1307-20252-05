@@ -17,7 +17,7 @@ export function AskQuestionPage() {
       .catch(() => void 0);
   }, []);
 
-  // Style chung cho các block bao quanh mỗi input item
+
   const formCardStyle = {
     background: '#ffffff',
     border: '1px solid #e3e6e8',
@@ -30,17 +30,17 @@ export function AskQuestionPage() {
   return (
     <div style={{ maxWidth: '850px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
-      {/* Tiêu đề trang lớn */}
+  
       <div style={{ marginBottom: '24px', paddingTop: '12px' }}>
         <Typography.Title level={2} style={{ margin: 0, fontWeight: 600, fontSize: '1.7rem', color: '#232629' }}>
-          Ask a public question
+          Đặt câu hỏi mới công khai
         </Typography.Title>
       </div>
 
       <Form
         layout="vertical"
         initialValues={{ tags: [] as string[], content: '' }}
-        requiredMark={false} // Ẩn dấu hoa thị đỏ (*) mặc định của Antd để giống Stack Overflow
+        requiredMark={false} 
         onFinish={async (values) => {
           try {
             const created = await questionsService.create(values);
@@ -52,36 +52,36 @@ export function AskQuestionPage() {
         }}
       >
         
-        {/* BLOCK 1: TIÊU ĐỀ (TITLE) */}
+        {/* BLOCK 1: TIÊU ĐỀ  */}
         <div style={formCardStyle}>
           <Form.Item 
             name="title" 
             label={
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#0c0d0e', lineHeight: '1.2' }}>Title</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#0c0d0e', lineHeight: '1.2' }}>Tiêu đề</span>
                 <span style={{ fontSize: '0.78rem', fontWeight: 400, color: '#3b4045', marginTop: '4px' }}>
-                  Be specific and imagine you’re asking a question to another person.
+                  Hãy cụ thể và tưởng tượng của bạn đang đặt câu hỏi cho người khác.
                 </span>
               </div>
             }
-            rules={[{ required: true, message: 'Please enter a title (min 10 characters)', min: 10 }]}
+            rules={[{ required: true, message: 'Tiêu đề tối thiếu 10 ký tự', min: 10 }]}
           >
             <Input 
-              placeholder="e.g. Is there an R function for finding the index of an element?" 
+              placeholder=" Bắt đầu bằng từ 'Làm thế nào để...' hoặc 'Tại sao...' và kết thúc bằng dấu hỏi (?)" 
               style={{ borderRadius: '3px', padding: '8px', fontSize: '0.9rem' }}
             />
           </Form.Item>
         </div>
 
-        {/* BLOCK 2: NỘI DUNG CHI TIẾT (BODY WITH TINYEDITOR) */}
+        {/* BLOCK 2: NỘI DUNG  */}
         <div style={formCardStyle}>
           <Form.Item
             name="content"
             label={
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#0c0d0e', lineHeight: '1.2' }}>Body</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#0c0d0e', lineHeight: '1.2' }}>Nội dung</span>
                 <span style={{ fontSize: '0.78rem', fontWeight: 400, color: '#3b4045', marginTop: '4px' }}>
-                  Introduce the problem and expand on what you put in the title. Minimum 20 characters.
+                  Giới thiệu vấn đề và mở rộng về điều bạn đã viết trong tiêu đề. Tối thiểu 20 ký tự.
                 </span>
               </div>
             }
@@ -99,7 +99,7 @@ export function AskQuestionPage() {
           </Form.Item>
         </div>
 
-        {/* BLOCK 3: THẺ PHÂN LOẠI (TAGS) */}
+        {/* BLOCK 3: THẺ PHÂN LOẠI */}
         <div style={formCardStyle}>
           <Form.Item 
             name="tags" 
@@ -107,19 +107,19 @@ export function AskQuestionPage() {
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 600, color: '#0c0d0e', lineHeight: '1.2' }}>Tags</span>
                 <span style={{ fontSize: '0.78rem', fontWeight: 400, color: '#3b4045', marginTop: '4px' }}>
-                  Add up to 5 tags to describe what your question is about.
+                  Thêm tối đa 5 thẻ để mô tả câu hỏi của bạn.
                 </span>
               </div>
             }
-            rules={[{ required: true, message: 'Please select at least one tag' }]}
+            rules={[{ required: true, message: 'Vui lòng chọn ít nhất một thẻ' }]}
           >
             <Select
               mode="multiple"
-              placeholder="e.g. (javascript reactjs c++)"
+              placeholder="Ví dụ: javascript, react, css"
               options={tags.map((t) => ({ label: t.name, value: t.name }))}
               style={{ width: '100%' }}
               dropdownStyle={{ borderRadius: '3px' }}
-              // Custom style cho các Tag được chọn hiện lên giống Stack Overflow
+              
               tagRender={({ label, onClose }) => (
                 <span style={{
                   display: 'inline-flex',
@@ -144,7 +144,7 @@ export function AskQuestionPage() {
           </Form.Item>
         </div>
 
-        {/* NÚT SUBMIT ĐĂNG BÀI VIẾT */}
+        {/* NÚT ĐĂNG BÀI VIẾT */}
         <div style={{ marginTop: '24px', marginBottom: '40px' }}>
           <Button 
             type="primary" 
@@ -160,7 +160,7 @@ export function AskQuestionPage() {
               boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.4)'
             }}
           >
-            Post your question
+            Đăng câu hỏi
           </Button>
         </div>
 

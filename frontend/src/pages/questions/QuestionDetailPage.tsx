@@ -403,7 +403,6 @@ export function QuestionDetailPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
-      {/* Header tinh gọn – chỉ có nút Quay lại */}
       <header
         style={{
           position: "sticky",
@@ -522,7 +521,6 @@ export function QuestionDetailPage() {
             dangerouslySetInnerHTML={{ __html: question.content }}
           />
 
-          {/* Thanh tương tác với các nút to hơn */}
           <div
             style={{
               display: "flex",

@@ -194,7 +194,6 @@ export function QuestionsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f6fa" }}>
-      {/* Header thanh lịch */}
       <div
         style={{
           background: "#ffffff",
@@ -256,7 +255,6 @@ export function QuestionsPage() {
           padding: "32px 24px",
         }}
       >
-        {/* Bộ lọc đẹp */}
         <Card
           style={{
             borderRadius: 20,
@@ -396,7 +394,7 @@ export function QuestionsPage() {
                     onClick={() => navigate(`/questions/${item.id}`)}
                   >
                     <div style={{ padding: "22px 24px" }}>
-                      {/* Trên cùng: tags + tác giả */}
+                      {/* tags + tác giả */}
                       <div
                         style={{
                           display: "flex",
@@ -600,7 +598,6 @@ export function QuestionsPage() {
           )}
         </Spin>
 
-        {/* Tags thịnh hành – nhẹ nhàng, đẹp mắt */}
         <div
           style={{
             marginTop: 48,
