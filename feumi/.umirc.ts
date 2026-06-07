@@ -1,31 +1,42 @@
-// .umirc.ts
-import { defineConfig } from 'umi';
+import { defineConfig } from "umi";
 
 export default defineConfig({
   routes: [
-    { path: '/', component: 'index' },
-    { path: '/login', component: 'login' },
-    { path: '/register', component: 'register' },
-    { path: '/questions', component: 'questions/index' },
-    { path: '/questions/:id', component: 'questions/[id]' },
-    // Giữ lại 1 dòng duy nhất và bật wrappers lên
-    { path: '/ask', component: 'ask', wrappers: ['@/wrappers/requireAuth'] },
-    { path: '/admin/posts', component: 'admin/posts', wrappers: ['@/wrappers/requireAdmin'] },
-    { path: '/admin/users', component: 'admin/users', wrappers: ['@/wrappers/requireAdmin'] },
-    { path: '/docs', component: 'docs' },
+    { path: "/", component: "index" },
+    { path: "/login", component: "login" },
+    { path: "/register", component: "register" },
+
+    { path: "/questions", component: "questions/index" },
+    { path: "/questions/:id", component: "questions/detail" },
+
+    { path: "/ask", component: "ask", wrappers: ["@/wrappers/requireAuth"] },
+
+    {
+      path: "/admin/posts",
+      component: "admin/posts",
+      wrappers: ["@/wrappers/requireAdmin"],
+    },
+    {
+      path: "/admin/users",
+      component: "admin/users",
+      wrappers: ["@/wrappers/requireAdmin"],
+    },
+
+    { path: "/docs", component: "docs" },
   ],
-  npmClient: 'yarn',
+
+  npmClient: "yarn",
+
   proxy: {
-    '/api': {
-      target: 'http://localhost:3000',
+    "/api": {
+      target: "http://localhost:3000",
       changeOrigin: true,
       secure: false,
     },
-    '/socket.io': {
-      target: 'http://localhost:3000',
+    "/socket.io": {
+      target: "http://localhost:3000",
       changeOrigin: true,
-      ws: true, // Quan trọng: Bật luồng WebSocket
-    }
+      ws: true,
+    },
   },
-  utoopack: {},
 });
