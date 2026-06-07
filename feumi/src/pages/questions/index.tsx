@@ -105,7 +105,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <FireOutlined className="icon-mr" /> Nổi bật
+            <FireOutlined style={{ marginRight: 8 }} />
+            Nổi bật
           </span>
         ),
         value: "hot",
@@ -113,7 +114,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <ClockCircleOutlined className="icon-mr" /> Mới nhất
+            <ClockCircleOutlined style={{ marginRight: 8 }} />
+            Mới nhất
           </span>
         ),
         value: "newest",
@@ -121,7 +123,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <CalendarOutlined className="icon-mr" /> Cũ nhất
+            <CalendarOutlined style={{ marginRight: 8 }} />
+            Cũ nhất
           </span>
         ),
         value: "oldest",
@@ -129,7 +132,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <LikeOutlined className="icon-mr" /> Nhiều thích
+            <LikeOutlined style={{ marginRight: 8 }} />
+            Nhiều thích
           </span>
         ),
         value: "likes",
@@ -137,7 +141,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <MessageOutlined className="icon-mr" /> Nhiều trả lời
+            <MessageOutlined style={{ marginRight: 8 }} />
+            Nhiều trả lời
           </span>
         ),
         value: "answers",
@@ -145,7 +150,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <EyeOutlined className="icon-mr" /> Nhiều xem
+            <EyeOutlined style={{ marginRight: 8 }} />
+            Nhiều xem
           </span>
         ),
         value: "views",
@@ -159,7 +165,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <QuestionCircleOutlined className="icon-mr" /> Tất cả
+            <QuestionCircleOutlined style={{ marginRight: 8 }} />
+            Tất cả
           </span>
         ),
         value: "all",
@@ -167,7 +174,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <CheckCircleOutlined className="icon-mr" /> Đã trả lời
+            <CheckCircleOutlined style={{ marginRight: 8 }} />
+            Đã trả lời
           </span>
         ),
         value: "answered",
@@ -175,7 +183,8 @@ export default function QuestionsPage() {
       {
         label: (
           <span>
-            <ClockCircleOutlined className="icon-mr" /> Chưa trả lời
+            <ClockCircleOutlined style={{ marginRight: 8 }} />
+            Chưa trả lời
           </span>
         ),
         value: "unanswered",
@@ -185,310 +194,121 @@ export default function QuestionsPage() {
   );
 
   return (
-    <>
-      <style>{`
-        /* Global Color Variables */
-        :root {
-          --color-bg-body: #f8fafc;
-          --color-bg-surface: #ffffff;
-          --color-primary: #2563eb;
-          --color-primary-hover: #1d4ed8;
-          --color-text-main: #0f172a;
-          --color-text-secondary: #475569;
-          --color-text-muted: #94a3b8;
-          --color-border: #e2e8f0;
-          --color-hot: #ef4444;
-          --color-bookmark: #eab308;
-          --color-success: #16a34a;
-        }
-
-        .qa-page-wrapper {
-          min-height: 100vh;
-          background-color: var(--color-bg-body);
-        }
-
-        /* Header Styles */
-        .qa-header {
-          background-color: var(--color-bg-surface);
-          border-bottom: 1px solid var(--color-border);
-          padding: 16px 32px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 16px;
-          position: sticky;
-          top: 0;
-          z-index: 20;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-
-        .qa-header-title {
-          margin: 0 !important;
-          font-weight: 700 !important;
-          color: var(--color-text-main) !important;
-          font-size: 24px !important;
-        }
-
-        .qa-header-subtitle {
-          color: var(--color-text-secondary);
-          font-size: 14px;
-        }
-
-        .btn-ask {
-          border-radius: 8px !important;
-          font-weight: 600 !important;
-          height: 40px !important;
-          padding: 0 24px !important;
-          background-color: var(--color-primary) !important;
-          box-shadow: none !important;
-        }
-
-        .btn-ask:hover {
-          background-color: var(--color-primary-hover) !important;
-        }
-
-        /* Main Content Styles */
-        .qa-main-content {
-          max-width: 1080px;
-          margin: 0 auto;
-          padding: 32px 24px;
-        }
-
-        /* Filter Section */
-        .qa-filter-card {
-          border-radius: 12px !important;
-          margin-bottom: 24px;
-          background-color: var(--color-bg-surface);
-          border: 1px solid var(--color-border) !important;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
-        }
-
-        .qa-filter-card .ant-card-body {
-          padding: 20px;
-        }
-
-        .search-input {
-          border-radius: 8px !important;
-          height: 44px;
-          font-size: 15px;
-        }
-
-        .filter-controls {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-          margin-top: 16px;
-        }
-
-        .filter-select {
-          min-width: 160px;
-        }
-
-        .filter-select .ant-select-selector {
-          border-radius: 8px !important;
-        }
-
-        .btn-action {
-          border-radius: 8px !important;
-          font-weight: 500 !important;
-        }
-
-        /* Question List */
-        .qa-list-container {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .qa-empty-state {
-          background: var(--color-bg-surface);
-          border-radius: 12px;
-          padding: 80px 24px;
-          text-align: center;
-          border: 1px solid var(--color-border);
-        }
-
-        .question-card {
-          border-radius: 12px !important;
-          border: 1px solid var(--color-border) !important;
-          transition: border-color 0.2s, box-shadow 0.2s !important;
-          background: var(--color-bg-surface);
-        }
-
-        .question-card:hover {
-          border-color: #cbd5e1 !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-        }
-
-        .question-card .ant-card-body {
-          padding: 20px 24px;
-        }
-
-        /* Card Meta */
-        .card-meta-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 12px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-
-        .badge-tag {
-          border-radius: 6px !important;
-          font-weight: 600 !important;
-          padding: 2px 10px !important;
-          font-size: 12px !important;
-          border: none !important;
-        }
-
-        .badge-hot { background-color: #fef2f2 !important; color: var(--color-hot) !important; }
-        .badge-saved { background-color: #fefce8 !important; color: var(--color-bookmark) !important; }
-
-        .author-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .author-avatar {
-          background-color: var(--color-border);
-          color: var(--color-text-secondary);
-        }
-
-        .author-name {
-          display: block;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--color-text-main);
-        }
-
-        .post-date {
-          font-size: 12px;
-          color: var(--color-text-muted);
-        }
-
-        /* Question Title */
-        .question-title {
-          margin: 0 0 12px 0 !important;
-          font-size: 18px !important;
-          font-weight: 600 !important;
-          line-height: 1.5 !important;
-        }
-
-        .question-title a {
-          color: var(--color-text-main);
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .question-title a:hover {
-          color: var(--color-primary);
-        }
-
-        /* Topic Tags */
-        .topic-tag {
-          background-color: var(--color-bg-body) !important;
-          color: var(--color-text-secondary) !important;
-          border: 1px solid var(--color-border) !important;
-          border-radius: 6px !important;
-          padding: 2px 12px !important;
-          font-weight: 500 !important;
-          font-size: 13px !important;
-          cursor: pointer;
-          transition: all 0.2s !important;
-        }
-
-        .topic-tag:hover {
-          background-color: var(--color-border) !important;
-          color: var(--color-text-main) !important;
-        }
-
-        /* Stats Row */
-        .stats-row {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 24px;
-          border-top: 1px solid var(--color-border);
-          padding-top: 16px;
-          margin-top: 16px;
-        }
-
-        .stat-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-          color: var(--color-text-secondary);
-          font-weight: 500;
-        }
-
-        .stat-item.highlight { color: var(--color-success); }
-
-        /* Popular Tags Footer */
-        .popular-tags-section {
-          margin-top: 40px;
-          padding-top: 24px;
-          border-top: 1px solid var(--color-border);
-        }
-
-        .popular-tags-title {
-          display: block;
-          margin-bottom: 16px;
-          color: var(--color-text-main);
-          font-size: 16px;
-          font-weight: 600;
-        }
-
-        .icon-mr { margin-right: 8px; }
-      `}</style>
-
-      <div className="qa-page-wrapper">
-        <div className="qa-header">
-          <div>
-            <Title level={3} className="qa-header-title">
-              Hỏi đáp & Thảo luận
-            </Title>
-            <Text className="qa-header-subtitle">
-              Nơi chia sẻ kiến thức và nhận hỗ trợ từ cộng đồng
-            </Text>
-          </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate("/ask")}
-            className="btn-ask"
+    <div style={{ minHeight: "100vh", background: "#f5f6fa" }}>
+      {/* Header thanh lịch */}
+      <div
+        style={{
+          background: "#ffffff",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          padding: "16px 32px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+        }}
+      >
+        <div>
+          <Title
+            level={3}
+            style={{
+              margin: 0,
+              fontWeight: 700,
+              color: "#1a1a2e",
+              letterSpacing: "-0.02em",
+              background: "linear-gradient(135deg, #1e293b 0%, #3b82f6 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
           >
-            Đặt câu hỏi
-          </Button>
+            Hỏi đáp & Thảo luận
+          </Title>
+          <Text style={{ color: "#64748b", fontSize: 13 }}>
+            Nơi chia sẻ kiến thức và nhận hỗ trợ từ cộng đồng
+          </Text>
         </div>
+        <Button
+          type="primary"
+          size="large"
+          icon={<PlusOutlined />}
+          onClick={() => navigate("/ask")}
+          style={{
+            borderRadius: 40,
+            fontWeight: 700,
+            height: 44,
+            paddingLeft: 28,
+            paddingRight: 28,
+            background: "linear-gradient(105deg, #2563eb 0%, #1d4ed8 100%)",
+            border: "none",
+            boxShadow: "0 6px 16px -2px rgba(37,99,235,0.3)",
+          }}
+        >
+          Đặt câu hỏi
+        </Button>
+      </div>
 
-        <div className="qa-main-content">
-          <Card className="qa-filter-card" bordered={false}>
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          padding: "32px 24px",
+        }}
+      >
+        {/* Bộ lọc đẹp */}
+        <Card
+          className="ub-card"
+          style={{
+            borderRadius: 20,
+            marginBottom: 32,
+            background: "#ffffff",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              width: "100%",
+            }}
+          >
             <Input
               allowClear
+              size="large"
               prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
               value={q}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setQ(e.target.value)
               }
               placeholder="Tìm kiếm câu hỏi..."
-              className="search-input"
+              style={{
+                borderRadius: 60,
+                border: "1px solid #e2e8f0",
+                height: 48,
+                fontSize: 15,
+                background: "#f8fafc",
+              }}
             />
-            <div className="filter-controls">
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 12,
+                alignItems: "center",
+              }}
+            >
               <Select
                 value={sort}
                 onChange={setSort}
-                className="filter-select"
+                style={{ minWidth: 160, borderRadius: 30 }}
                 options={sortOptions}
               />
               <Select
                 value={status}
                 onChange={setStatus}
-                className="filter-select"
+                style={{ minWidth: 160, borderRadius: 30 }}
                 options={statusOptions}
               />
               <Select
@@ -496,13 +316,12 @@ export default function QuestionsPage() {
                 showSearch
                 placeholder={
                   <span>
-                    <TagOutlined className="icon-mr" /> Lọc tag
+                    <TagOutlined style={{ marginRight: 6 }} /> Lọc tag
                   </span>
                 }
                 value={tag}
                 onChange={setTag}
-                className="filter-select"
-                style={{ minWidth: 180 }}
+                style={{ minWidth: 180, borderRadius: 30 }}
                 options={tags.map((t) => ({
                   label: t.name,
                   value: t.name,
@@ -513,7 +332,14 @@ export default function QuestionsPage() {
                   type={bookmarked ? "primary" : "default"}
                   icon={<StarFilled />}
                   onClick={() => setBookmarked((v) => !v)}
-                  className="btn-action"
+                  style={{
+                    borderRadius: 40,
+                    fontWeight: 600,
+                    borderColor: bookmarked ? undefined : "#cbd5e1",
+                    boxShadow: bookmarked
+                      ? "0 4px 10px rgba(37,99,235,0.2)"
+                      : "none",
+                  }}
                 >
                   Đã lưu
                 </Button>
@@ -526,45 +352,79 @@ export default function QuestionsPage() {
                     setStatus("all");
                     setBookmarked(false);
                   }}
-                  className="btn-action"
+                  style={{ borderRadius: 40 }}
                 >
                   Xóa bộ lọc
                 </Button>
               )}
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Spin spinning={loading}>
-            {rows.length === 0 ? (
-              <div className="qa-empty-state">
-                <Empty description="Chưa có câu hỏi nào phù hợp" />
-              </div>
-            ) : (
-              <div className="qa-list-container">
-                {rows.map((item) => {
-                  const likes = getLikes(item);
-                  const dislikes = getDislikes(item);
-                  const answers = getAnswers(item);
-                  const views = getViews(item);
-                  const isHot =
-                    (item.hotScore ?? 0) >= 8 ||
-                    likes - dislikes >= 5 ||
-                    answers >= 3 ||
-                    views >= 100;
+        {/* Danh sách câu hỏi */}
+        <Spin spinning={loading}>
+          {rows.length === 0 ? (
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 24,
+                padding: "80px 24px",
+                textAlign: "center",
+                boxShadow: "0 8px 30px -6px rgba(0,0,0,0.04)",
+                border: "1px solid #f0f2f5",
+              }}
+            >
+              <Empty description="Chưa có câu hỏi nào phù hợp" />
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {rows.map((item) => {
+                const likes = getLikes(item);
+                const dislikes = getDislikes(item);
+                const answers = getAnswers(item);
+                const views = getViews(item);
+                const isHot =
+                  (item.hotScore ?? 0) >= 8 ||
+                  likes - dislikes >= 5 ||
+                  answers >= 3 ||
+                  views >= 100;
 
-                  return (
-                    <Card
-                      key={item.id}
-                      className="question-card"
-                      bordered={false}
-                      onClick={() => navigate(`/questions/${item.id}`)}
-                    >
-                      <div className="card-meta-row">
-                        <Space size={8} wrap>
+                return (
+                  <Card
+                    key={item.id}
+                    hoverable
+                    className="ub-card"
+                    style={{
+                      borderRadius: 24,
+                      transition: "all 0.3s ease",
+                      background: "#ffffff",
+                    }}
+                    onClick={() => navigate(`/questions/${item.id}`)}
+                  >
+                    <div style={{ padding: "22px 24px" }}>
+                      {/* Trên cùng: tags + tác giả */}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          marginBottom: 10,
+                          flexWrap: "wrap",
+                          gap: 8,
+                        }}
+                      >
+                        <Space size={6} wrap>
                           {isHot && (
                             <Tag
                               icon={<FireOutlined />}
-                              className="badge-tag badge-hot"
+                              color="volcano"
+                              style={{
+                                borderRadius: 20,
+                                fontWeight: 700,
+                                padding: "2px 14px",
+                                lineHeight: "24px",
+                                fontSize: 12,
+                              }}
                             >
                               HOT
                             </Tag>
@@ -572,96 +432,225 @@ export default function QuestionsPage() {
                           {item.isBookmarked && (
                             <Tag
                               icon={<StarFilled />}
-                              className="badge-tag badge-saved"
+                              color="gold"
+                              style={{
+                                borderRadius: 20,
+                                fontWeight: 700,
+                                padding: "2px 14px",
+                                lineHeight: "24px",
+                                fontSize: 12,
+                              }}
                             >
                               Đã lưu
                             </Tag>
                           )}
                         </Space>
-                        <div className="author-info">
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
                           <Avatar
-                            size={36}
+                            size={32}
                             icon={<UserOutlined />}
-                            className="author-avatar"
+                            style={{
+                              background:
+                                "linear-gradient(145deg, #4f46e5, #7c3aed)",
+                            }}
                           />
                           <div>
-                            <Text className="author-name">
+                            <Text
+                              strong
+                              style={{
+                                display: "block",
+                                fontSize: 13,
+                                color: "#1e293b",
+                              }}
+                            >
                               {item.author?.fullName || "Thành viên"}
                             </Text>
-                            <span className="post-date">
-                              <ClockCircleOutlined style={{ marginRight: 4 }} />
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              <ClockCircleOutlined />{" "}
                               {formatDate(item.createdAt)}
-                            </span>
+                            </Text>
                           </div>
                         </div>
                       </div>
 
-                      <Title level={4} className="question-title">
-                        <Link
-                          to={`/questions/${item.id}`}
-                          onClick={(e: MouseEvent<HTMLAnchorElement>) =>
-                            e.stopPropagation()
-                          }
+                      {/* Tiêu đề câu hỏi */}
+                      <div style={{ marginBottom: 12 }}>
+                        <Title
+                          level={4}
+                          style={{
+                            margin: 0,
+                            fontSize: 18,
+                            fontWeight: 700,
+                            lineHeight: 1.4,
+                            color: "#0f172a",
+                          }}
                         >
-                          {item.title}
-                        </Link>
-                      </Title>
-
-                      <Space size={[8, 8]} wrap>
-                        {item.tags?.map((t) => (
-                          <Tag
-                            key={t.id || t.name}
-                            onClick={(e: MouseEvent<HTMLSpanElement>) => {
-                              e.stopPropagation();
-                              setTag(t.name);
+                          <Link
+                            to={`/questions/${item.id}`}
+                            onClick={(e: MouseEvent<HTMLAnchorElement>) =>
+                              e.stopPropagation()
+                            }
+                            style={{
+                              color: "inherit",
+                              textDecoration: "none",
+                              transition: "color 0.2s",
                             }}
-                            className="topic-tag"
+                            onMouseEnter={(e: MouseEvent<HTMLAnchorElement>) =>
+                              (e.currentTarget.style.color = "#2563eb")
+                            }
+                            onMouseLeave={(e: MouseEvent<HTMLAnchorElement>) =>
+                              (e.currentTarget.style.color = "#0f172a")
+                            }
                           >
-                            {t.name}
-                          </Tag>
-                        ))}
-                      </Space>
+                            {item.title}
+                          </Link>
+                        </Title>
+                      </div>
 
-                      <div className="stats-row">
-                        <span className="stat-item">
-                          <LikeOutlined /> {likes}
+                      {/* Thẻ */}
+                      <div style={{ marginBottom: 16 }}>
+                        <Space size={[6, 8]} wrap>
+                          {item.tags?.map((t) => (
+                            <Tag
+                              key={t.id || t.name}
+                              onClick={(e: MouseEvent<HTMLSpanElement>) => {
+                                e.stopPropagation();
+                                setTag(t.name);
+                              }}
+                              style={{
+                                background: "#f1f5f9",
+                                color: "#334155",
+                                border: "none",
+                                borderRadius: 40,
+                                padding: "3px 14px",
+                                fontWeight: 600,
+                                fontSize: 12,
+                                cursor: "pointer",
+                              }}
+                            >
+                              {t.name}
+                            </Tag>
+                          ))}
+                        </Space>
+                      </div>
+
+                      {/* Chỉ số */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                          gap: 20,
+                          borderTop: "1px solid #f1f5f9",
+                          paddingTop: 14,
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            color: "#475569",
+                            fontSize: 13,
+                          }}
+                        >
+                          <LikeOutlined />
+                          {likes}
                         </span>
-                        <span className="stat-item">
-                          <DislikeOutlined /> {dislikes}
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            color: "#475569",
+                            fontSize: 13,
+                          }}
+                        >
+                          <DislikeOutlined />
+                          {dislikes}
                         </span>
-                        <span className="stat-item highlight">
-                          <MessageOutlined /> {answers} trả lời
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            color: "#16a34a",
+                            fontSize: 13,
+                          }}
+                        >
+                          <MessageOutlined />
+                          {answers} trả lời
                         </span>
-                        <span className="stat-item">
-                          <EyeOutlined /> {views} lượt xem
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            color: "#64748b",
+                            fontSize: 13,
+                          }}
+                        >
+                          <EyeOutlined />
+                          {views} lượt xem
                         </span>
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </Spin>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </Spin>
 
-          <div className="popular-tags-section">
-            <span className="popular-tags-title">
-              <TagsOutlined className="icon-mr" />
-              Thẻ phổ biến
-            </span>
-            <Space wrap size={[12, 12]}>
-              {tags.slice(0, 12).map((t) => (
-                <Tag
-                  key={t.id || t.name}
-                  onClick={() => setTag(t.name)}
-                  className="topic-tag"
-                >
-                  {t.name}
-                </Tag>
-              ))}
-            </Space>
+        {/* Thẻ thịnh hành – nhẹ nhàng, đẹp mắt */}
+        <div
+          style={{
+            marginTop: 48,
+            padding: "24px 0",
+            borderTop: "1px solid #e9eef2",
+          }}
+        >
+          <Text
+            strong
+            style={{
+              display: "block",
+              marginBottom: 14,
+              color: "#334155",
+              fontSize: 15,
+            }}
+          >
+            <TagsOutlined style={{ marginRight: 8 }} />
+            Thẻ phổ biến
+          </Text>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {tags.slice(0, 12).map((t) => (
+              <Tag
+                key={t.id || t.name}
+                onClick={() => setTag(t.name)}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #d1d5db",
+                  borderRadius: 30,
+                  padding: "6px 18px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  color: "#374151",
+                  transition: "all 0.2s",
+                }}
+              >
+                {t.name}
+              </Tag>
+            ))}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

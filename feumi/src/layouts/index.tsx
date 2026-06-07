@@ -39,6 +39,7 @@ interface NotificationItem {
 function useSelectedKey(pathname: string) {
   if (pathname.startsWith("/admin/users")) return "/admin/users";
   if (pathname.startsWith("/admin/posts")) return "/admin/posts";
+  if (pathname.startsWith("/admin/dashboard")) return "/admin/dashboard";
   if (pathname.startsWith("/ask")) return "/ask";
   if (pathname.startsWith("/login")) return "/login";
   if (pathname.startsWith("/register")) return "/register";
@@ -167,6 +168,11 @@ export default function GlobalLayout() {
         key: "/admin/users",
         icon: <TeamOutlined />,
         label: <Link to="/admin/users">Quản lý người dùng</Link>,
+      },
+      {
+        key: "/admin/dashboard",
+        icon: <HomeOutlined />,
+        label: <Link to="/admin/dashboard">Thống kê</Link>,
       },
     );
   }
@@ -477,11 +483,18 @@ export default function GlobalLayout() {
             </Content>
 
             {/* THÊM CHÂN TRANG PTIT VÀO ĐÂY */}
-            <Footer style={{ textAlign: 'center', color: '#888', backgroundColor: 'transparent', padding: '16px 24px' }}>
-              Học viện Công nghệ Bưu chính Viễn thông (PTIT) ©{new Date().getFullYear()} - Nền tảng UniBrain
+            <Footer
+              style={{
+                textAlign: "center",
+                color: "#888",
+                backgroundColor: "transparent",
+                padding: "16px 24px",
+              }}
+            >
+              Học viện Công nghệ Bưu chính Viễn thông (PTIT) ©
+              {new Date().getFullYear()} - Nền tảng UniBrain
             </Footer>
           </Layout>
-          
         </Layout>
       </Layout>
     </ConfigProvider>
