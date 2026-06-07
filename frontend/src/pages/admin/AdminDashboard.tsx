@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Col, Row, Statistic, Spin, message, Typography } from "antd";
+import { useNavigate } from "react-router-dom";
 import {
   UserOutlined,
   FileTextOutlined,
@@ -19,6 +20,7 @@ interface StatsData {
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -75,7 +77,9 @@ const AdminDashboard: React.FC = () => {
           <Card
             className="ub-card"
             bordered
-            style={{ border: "1px solid #d9d9d9" }}
+            hoverable
+            onClick={() => navigate("/admin/users")}
+            style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
           >
             <Statistic
               title={
@@ -98,7 +102,9 @@ const AdminDashboard: React.FC = () => {
           <Card
             className="ub-card"
             bordered
-            style={{ border: "1px solid #d9d9d9" }}
+            hoverable
+            onClick={() => navigate("/admin/posts")}
+            style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
           >
             <Statistic
               title={
@@ -121,7 +127,9 @@ const AdminDashboard: React.FC = () => {
           <Card
             className="ub-card"
             bordered
-            style={{ border: "1px solid #d9d9d9" }}
+            hoverable
+            onClick={() => navigate("/admin/posts")}
+            style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
           >
             <Statistic
               title={
@@ -144,7 +152,14 @@ const AdminDashboard: React.FC = () => {
           <Card
             className="ub-card"
             bordered
-            style={{ border: "1px solid #d9d9d9" }}
+            hoverable
+            
+            onClick={() =>
+              message.info(
+                "Chức năng quản lý bình luận độc lập đang được phát triển",
+              )
+            }
+            style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
           >
             <Statistic
               title={
