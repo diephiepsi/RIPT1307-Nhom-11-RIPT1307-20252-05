@@ -31,6 +31,7 @@ export default defineConfig({
   ],
 
   npmClient: "yarn",
+   esbuildMinifyIIFE: true,
 
   proxy: {
     "/api": {
