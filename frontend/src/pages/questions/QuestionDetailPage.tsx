@@ -14,12 +14,12 @@ import {
 import {
   BookOutlined,
   ClockCircleOutlined,
-  CopyOutlined,
   DislikeOutlined,
   EyeOutlined,
   LikeOutlined,
   MessageOutlined,
   SendOutlined,
+  ShareAltOutlined,
   StarFilled,
   ArrowLeftOutlined,
   UserOutlined,
@@ -95,7 +95,7 @@ function CommentThread({
     <div
       style={{
         marginTop: level === 0 ? 0 : 24,
-        marginLeft: level === 0 ? 0 : 48,
+        marginLeft: level === 0 ? 0 : 56,
         position: "relative",
       }}
     >
@@ -103,25 +103,28 @@ function CommentThread({
         <div
           style={{
             position: "absolute",
-            left: -24,
-            top: 0,
-            bottom: 0,
+            left: -28,
+            top: 24,
+            bottom: 24,
             width: 2,
-            background: "linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 100%)",
+            background:
+              "linear-gradient(180deg, #e0e7ff 0%, #c7d2fe 50%, #e0e7ff 100%)",
             borderRadius: 1,
+            opacity: 0.7,
           }}
         />
       )}
       <div style={{ padding: "16px 0" }}>
         <div style={{ display: "flex", gap: 16 }}>
           <Avatar
-            size={40}
+            size={44}
             icon={<UserOutlined />}
             style={{
-              background: "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)",
-              color: "#475569",
+              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              color: "#fff",
               flexShrink: 0,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
+              border: "2px solid #ffffff",
             }}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -130,56 +133,70 @@ function CommentThread({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
-                marginBottom: 8,
+                marginBottom: 10,
               }}
             >
               <div>
-                <Text strong style={{ fontSize: 15, color: "#1a2332" }}>
+                <Text strong style={{ fontSize: 15, color: "#1e293b" }}>
                   {node.author?.fullName || "Người dùng"}
                 </Text>
-                <Text type="secondary" style={{ fontSize: 13, marginLeft: 12 }}>
+                <Text
+                  style={{ fontSize: 13, marginLeft: 12, color: "#94a3b8" }}
+                >
                   <ClockCircleOutlined style={{ marginRight: 4 }} />
                   {formatDate(node.createdAt)}
                 </Text>
               </div>
             </div>
-            <Paragraph
+            <div
               style={{
-                whiteSpace: "pre-wrap",
-                fontSize: 15,
-                lineHeight: 1.7,
-                color: "#334155",
-                marginBottom: 12,
-              }}
-            >
-              {node.content}
-            </Paragraph>
-            <Button
-              type="text"
-              size="small"
-              onClick={() => onOpenReply(node.id)}
-              style={{
-                color: "#2563eb",
-                fontWeight: 600,
-                padding: "0 4px",
-                height: "auto",
-                fontSize: 13,
+                background: "#f8fafc",
+                borderRadius: 16,
+                padding: "16px 20px",
+                border: "1px solid #f1f5f9",
                 transition: "all 0.2s",
-                borderRadius: 6,
               }}
             >
-              <MessageOutlined style={{ marginRight: 4 }} />
-              Trả lời
-            </Button>
+              <Paragraph
+                style={{
+                  whiteSpace: "pre-wrap",
+                  fontSize: 15,
+                  lineHeight: 1.7,
+                  color: "#334155",
+                  marginBottom: 12,
+                }}
+              >
+                {node.content}
+              </Paragraph>
+              <Button
+                type="text"
+                size="small"
+                onClick={() => onOpenReply(node.id)}
+                style={{
+                  color: "#6366f1",
+                  fontWeight: 600,
+                  padding: "0 4px",
+                  height: "auto",
+                  fontSize: 13,
+                  borderRadius: 8,
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+              >
+                <MessageOutlined style={{ marginRight: 6 }} />
+                Trả lời
+              </Button>
+            </div>
+
             {isReplying && (
               <div
                 style={{
                   marginTop: 16,
                   background: "#ffffff",
-                  borderRadius: 12,
-                  padding: 16,
+                  borderRadius: 16,
+                  padding: 20,
                   border: "1px solid #e2e8f0",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.04)",
                 }}
               >
                 <TextArea
@@ -189,31 +206,35 @@ function CommentThread({
                   onChange={(e) => onChangeReply(e.target.value)}
                   placeholder={`Phản hồi ${node.author?.fullName || "người dùng"}...`}
                   style={{
-                    borderRadius: 8,
-                    marginBottom: 12,
+                    borderRadius: 12,
+                    marginBottom: 16,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,
+                    padding: 12,
                   }}
                 />
                 <Space>
                   <Button
                     type="primary"
-                    size="small"
+                    size="middle"
                     loading={submitting}
                     icon={<SendOutlined />}
                     onClick={() => onSubmitReply(node.id)}
                     style={{
-                      borderRadius: 8,
+                      borderRadius: 12,
                       fontWeight: 600,
-                      boxShadow: "0 2px 8px rgba(37,99,235,0.2)",
+                      background:
+                        "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                      border: "none",
+                      boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
                     }}
                   >
                     Gửi
                   </Button>
                   <Button
-                    size="small"
+                    size="middle"
                     onClick={onCancelReply}
-                    style={{ borderRadius: 8 }}
+                    style={{ borderRadius: 12, fontWeight: 500 }}
                   >
                     Hủy
                   </Button>
@@ -245,13 +266,17 @@ export function QuestionDetailPage() {
   const { id = "" } = useParams();
   const { message } = App.useApp();
   const viewedRef = useRef<string | null>(null);
+  const commentBoxRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<any>(null);
 
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState<QuestionDetail | null>(null);
-  const [answerText, setAnswerText] = useState("");
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showInlineCommentBox, setShowInlineCommentBox] = useState(false);
+  const [inlineCommentText, setInlineCommentText] = useState("");
+  const [inlineSubmitting, setInlineSubmitting] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -314,29 +339,6 @@ export function QuestionDetailPage() {
     message.success("Đã sao chép liên kết");
   };
 
-  const submitAnswer = async () => {
-    if (!question || !answerText.trim()) return;
-    setSubmitting(true);
-    try {
-      const created = await questionsService.addComment(question.id, {
-        content: answerText.trim(),
-      });
-      setQuestion({
-        ...question,
-        comments: [...question.comments, created],
-        answersCount: (question.answersCount ?? question.comments.length) + 1,
-      });
-      setAnswerText("");
-      message.success("Đã gửi câu trả lời");
-    } catch (err: any) {
-      message.error(
-        err?.response?.data?.message || "Không gửi được câu trả lời",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const submitReply = async (parentId: string) => {
     if (!question || !replyText.trim()) return;
     setSubmitting(true);
@@ -362,12 +364,50 @@ export function QuestionDetailPage() {
     }
   };
 
+  const handleOpenInlineComment = () => {
+    setShowInlineCommentBox(true);
+    setTimeout(() => {
+      commentInputRef.current?.focus();
+      commentBoxRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
+  };
+
+  const handleSubmitInlineComment = async () => {
+    if (!question || !inlineCommentText.trim()) return;
+    setInlineSubmitting(true);
+    try {
+      const created = await questionsService.addComment(question.id, {
+        content: inlineCommentText.trim(),
+      });
+      setQuestion({
+        ...question,
+        comments: [...question.comments, created],
+        answersCount: (question.answersCount ?? question.comments.length) + 1,
+      });
+      setInlineCommentText("");
+      setShowInlineCommentBox(false);
+      message.success("Đã gửi bình luận");
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Không gửi được bình luận");
+    } finally {
+      setInlineSubmitting(false);
+    }
+  };
+
+  const handleCancelInlineComment = () => {
+    setShowInlineCommentBox(false);
+    setInlineCommentText("");
+  };
+
   if (loading) {
     return (
       <div
         style={{
           minHeight: "100vh",
-          background: "#f8fafc",
+          background: "linear-gradient(135deg, #f0f4ff 0%, #e2e8f0 100%)",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -402,285 +442,472 @@ export function QuestionDetailPage() {
   const views = question.viewsCount ?? 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
-      {/* Header tinh gọn – chỉ có nút Quay lại */}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f9faff 0%, #f1f5f9 100%)",
+        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+      }}
+    >
       <header
         style={{
           position: "sticky",
           top: 0,
-          zIndex: 20,
-          backdropFilter: "blur(12px)",
-          background: "rgba(255,255,255,0.85)",
-          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
-          padding: "12px 32px",
+          zIndex: 100,
+          backdropFilter: "blur(20px)",
+          background: "rgba(255,255,255,0.8)",
+          borderBottom: "1px solid rgba(226, 232, 240, 0.6)",
+          padding: "0 48px",
+          height: 64,
           display: "flex",
-          justifyContent: "flex-start",
           alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "0 1px 8px rgba(0,0,0,0.02)",
         }}
       >
         <Link to="/questions">
           <Button
             type="text"
-            icon={<ArrowLeftOutlined />}
-            style={{ fontWeight: 600, color: "#334155", borderRadius: 8 }}
+            icon={<ArrowLeftOutlined style={{ fontSize: 18 }} />}
+            style={{
+              fontWeight: 600,
+              color: "#475569",
+              borderRadius: 12,
+              padding: "4px 16px",
+              height: 40,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#f1f5f9",
+              border: "1px solid #e2e8f0",
+              transition: "all 0.2s",
+            }}
           >
             Quay lại
           </Button>
         </Link>
+        <div style={{ fontWeight: 700, fontSize: 18, color: "#1e293b" }}>
+          Chi tiết câu hỏi
+        </div>
+        <div style={{ width: 100 }} />
       </header>
 
       <main
-        style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 80px" }}
+        style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 24px 80px" }}
       >
         <Card
-          className="ub-card"
           style={{
-            borderRadius: 28,
-            boxShadow: "0 20px 60px -20px rgba(0,0,0,0.1)",
+            borderRadius: 32,
+            boxShadow: "0 25px 80px -20px rgba(0,0,0,0.1)",
             background: "#ffffff",
+            border: "1px solid #f1f5f9",
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: '48px 56px' }}>
-          <Title
-            level={1}
-            style={{
-              marginBottom: 24,
-              fontWeight: 700,
-              color: "#0f172a",
-              letterSpacing: "-0.03em",
-              fontSize: 34,
-              lineHeight: 1.25,
-            }}
-          >
-            {question.title}
-          </Title>
+          <div style={{ padding: "48px 56px" }}>
+            <Title
+              level={1}
+              style={{
+                marginBottom: 28,
+                fontWeight: 800,
+                color: "#0f172a",
+                letterSpacing: "-0.04em",
+                fontSize: 34,
+                lineHeight: 1.2,
+              }}
+            >
+              {question.title}
+            </Title>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 24,
-              marginBottom: 24,
-              color: "#64748b",
-              fontSize: 15,
-            }}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <UserOutlined style={{ color: "#2563eb" }} />
-              {question.author?.fullName || "Thành viên"}
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <ClockCircleOutlined style={{ color: "#2563eb" }} />
-              {formatDate(question.createdAt)}
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <EyeOutlined style={{ color: "#2563eb" }} />
-              {views} lượt xem
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <MessageOutlined style={{ color: "#2563eb" }} />
-              {answers} trả lời
-            </span>
-          </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 16,
+                marginBottom: 28,
+                color: "#475569",
+                fontSize: 15,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#f1f5f9",
+                  borderRadius: 30,
+                  padding: "8px 18px",
+                  fontWeight: 500,
+                  fontSize: 15,
+                }}
+              >
+                <UserOutlined style={{ color: "#6366f1", fontSize: 16 }} />
+                {question.author?.fullName || "Thành viên"}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#f1f5f9",
+                  borderRadius: 30,
+                  padding: "8px 18px",
+                  fontWeight: 500,
+                  fontSize: 15,
+                }}
+              >
+                <ClockCircleOutlined
+                  style={{ color: "#6366f1", fontSize: 16 }}
+                />
+                {formatDate(question.createdAt)}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#f1f5f9",
+                  borderRadius: 30,
+                  padding: "8px 18px",
+                  fontWeight: 500,
+                  fontSize: 15,
+                }}
+              >
+                <EyeOutlined style={{ color: "#6366f1", fontSize: 16 }} />
+                {views} lượt xem
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#f1f5f9",
+                  borderRadius: 30,
+                  padding: "8px 18px",
+                  fontWeight: 500,
+                  fontSize: 15,
+                }}
+              >
+                <MessageOutlined style={{ color: "#6366f1", fontSize: 16 }} />
+                {answers} trả lời
+              </div>
+            </div>
 
-          <div style={{ marginBottom: 32 }}>
-            <Space wrap size={[8, 12]}>
-              {question.tags?.map((t) => (
-                <Tag
-                  key={t.id || t.name}
+            <div style={{ marginBottom: 32 }}>
+              <Space wrap size={[8, 12]}>
+                {question.tags?.map((t) => (
+                  <Tag
+                    key={t.id || t.name}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%)",
+                      border: "none",
+                      borderRadius: 30,
+                      padding: "6px 20px",
+                      fontSize: 14,
+                      color: "#4c1d95",
+                      fontWeight: 600,
+                      cursor: "default",
+                      boxShadow: "0 2px 6px rgba(139, 92, 246, 0.15)",
+                    }}
+                  >
+                    {t.name}
+                  </Tag>
+                ))}
+              </Space>
+            </div>
+
+            <div
+              style={{
+                background: "#fafbff",
+                borderRadius: 20,
+                padding: "32px 36px",
+                marginBottom: 36,
+                fontSize: 16,
+                lineHeight: 1.85,
+                color: "#1e293b",
+                border: "1px solid #eef2ff",
+                boxShadow: "inset 0 2px 10px rgba(0,0,0,0.02)",
+              }}
+              dangerouslySetInnerHTML={{ __html: question.content }}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-around",
+                padding: "12px 0",
+                borderTop: "1px solid #f1f5f9",
+                borderBottom: "1px solid #f1f5f9",
+                marginBottom: 48,
+              }}
+            >
+              <Tooltip title="Thích">
+                <Button
+                  type="text"
+                  icon={<LikeOutlined style={{ fontSize: 20 }} />}
+                  onClick={() => void handleQuestionVote(1)}
                   style={{
-                    background: "#eff6ff",
-                    border: "1px solid #dbeafe",
-                    borderRadius: 40,
-                    padding: "6px 20px",
-                    fontSize: 13,
-                    color: "#1d4ed8",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                     fontWeight: 600,
-                    cursor: "default",
+                    fontSize: 15,
+                    color: question.votes?.myVote === 1 ? "#4f46e5" : "#475569",
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: 8,
                     transition: "all 0.2s",
                   }}
                 >
-                  {t.name}
-                </Tag>
-              ))}
-            </Space>
-          </div>
+                  Thích {likes > 0 && `(${likes})`}
+                </Button>
+              </Tooltip>
 
-          <div
-            style={{
-              background: "#f9fafb",
-              borderRadius: 18,
-              padding: "28px 32px",
-              marginBottom: 32,
-              fontSize: 17,
-              lineHeight: 1.85,
-              color: "#1e293b",
-            }}
-            dangerouslySetInnerHTML={{ __html: question.content }}
-          />
-
-          {/* Thanh tương tác với các nút to hơn */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "18px 0",
-              borderTop: "1px solid #f1f5f9",
-              borderBottom: "1px solid #f1f5f9",
-              marginBottom: 48,
-            }}
-          >
-            <Button
-              type={question.votes?.myVote === 1 ? "primary" : "default"}
-              icon={<LikeOutlined />}
-              onClick={() => void handleQuestionVote(1)}
-              size="large"
-              style={{
-                fontWeight: 600,
-                borderRadius: 12,
-                padding: "6px 20px",
-              }}
-            >
-              {likes}
-            </Button>
-            <Button
-              type={question.votes?.myVote === -1 ? "primary" : "default"}
-              icon={<DislikeOutlined />}
-              onClick={() => void handleQuestionVote(-1)}
-              size="large"
-              style={{
-                fontWeight: 600,
-                borderRadius: 12,
-                padding: "6px 20px",
-              }}
-            >
-              {dislikes}
-            </Button>
-
-            <Tooltip title="Sao chép liên kết">
-              <Button
-                type="text"
-                icon={<CopyOutlined style={{ fontSize: 20 }} />}
-                size="large"
-                onClick={() => void handleCopy()}
-                style={{
-                  color: "#475569",
-                  borderRadius: 12,
-                  marginLeft: 8,
-                }}
-              />
-            </Tooltip>
-
-            <Tooltip title={question.isBookmarked ? "Bỏ lưu" : "Lưu"}>
-              <Button
-                type="text"
-                icon={
-                  question.isBookmarked ? (
-                    <StarFilled style={{ color: "#f59e0b", fontSize: 20 }} />
-                  ) : (
-                    <BookOutlined style={{ fontSize: 20 }} />
-                  )
-                }
-                size="large"
-                onClick={() => void handleBookmark()}
-                style={{
-                  color: "#475569",
-                  borderRadius: 12,
-                }}
-              />
-            </Tooltip>
-          </div>
-
-          <Title
-            level={3}
-            style={{ marginBottom: 28, fontWeight: 700, color: "#0f172a" }}
-          >
-            {answers} câu trả lời
-          </Title>
-
-          {commentTree.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "56px 0" }}>
-              <Empty description="Chưa có câu trả lời nào. Hãy là người đầu tiên chia sẻ!" />
-            </div>
-          ) : (
-            <div style={{ marginBottom: 56 }}>
-              {commentTree.map((node) => (
-                <CommentThread
-                  key={node.id}
-                  node={node}
-                  replyingId={replyingId}
-                  replyText={replyText}
-                  submitting={submitting}
-                  onOpenReply={(commentId) => {
-                    setReplyingId(commentId);
-                    setReplyText("");
+              <Tooltip title="Không thích">
+                <Button
+                  type="text"
+                  icon={<DislikeOutlined style={{ fontSize: 20 }} />}
+                  onClick={() => void handleQuestionVote(-1)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color:
+                      question.votes?.myVote === -1 ? "#dc2626" : "#475569",
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    transition: "all 0.2s",
                   }}
-                  onChangeReply={setReplyText}
-                  onSubmitReply={(parentId) => void submitReply(parentId)}
-                  onCancelReply={() => {
-                    setReplyingId(null);
-                    setReplyText("");
-                  }}
-                />
-              ))}
-            </div>
-          )}
+                >
+                  Không thích {dislikes > 0 && `(${dislikes})`}
+                </Button>
+              </Tooltip>
 
-          <div
-            style={{
-              background: "linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)",
-              borderRadius: 20,
-              padding: 32,
-              border: "1px solid #e2e8f0",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.02)",
-            }}
-          >
+              <Tooltip title="Bình luận">
+                <Button
+                  type="text"
+                  icon={<MessageOutlined style={{ fontSize: 20 }} />}
+                  onClick={handleOpenInlineComment}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: "#475569",
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  Bình luận {answers > 0 && `(${answers})`}
+                </Button>
+              </Tooltip>
+
+              <Tooltip title="Chia sẻ liên kết">
+                <Button
+                  type="text"
+                  icon={<ShareAltOutlined style={{ fontSize: 20 }} />}
+                  onClick={() => void handleCopy()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: "#475569",
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  Chia sẻ
+                </Button>
+              </Tooltip>
+
+              <Tooltip title={question.isBookmarked ? "Bỏ lưu" : "Lưu"}>
+                <Button
+                  type="text"
+                  icon={
+                    question.isBookmarked ? (
+                      <StarFilled style={{ color: "#f59e0b", fontSize: 20 }} />
+                    ) : (
+                      <BookOutlined style={{ fontSize: 20 }} />
+                    )
+                  }
+                  onClick={() => void handleBookmark()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: question.isBookmarked ? "#f59e0b" : "#475569",
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {question.isBookmarked ? "Đã lưu" : "Lưu"}
+                </Button>
+              </Tooltip>
+            </div>
+
             <Title
-              level={4}
-              style={{ marginTop: 0, fontWeight: 700, color: "#1e293b" }}
-            >
-              Viết câu trả lời của bạn
-            </Title>
-            <TextArea
-              rows={5}
-              value={answerText}
-              onChange={(e) => setAnswerText(e.target.value)}
-              placeholder="Chia sẻ kiến thức, kinh nghiệm hoặc góc nhìn của bạn..."
+              level={3}
               style={{
-                borderRadius: 14,
-                border: "1px solid #cbd5e1",
-                marginBottom: 24,
-                fontSize: 16,
-                padding: 16,
-                resize: "vertical",
-              }}
-            />
-            <Button
-              type="primary"
-              size="large"
-              icon={<SendOutlined />}
-              loading={submitting}
-              onClick={() => void submitAnswer()}
-              style={{
-                borderRadius: 14,
+                marginBottom: 32,
                 fontWeight: 700,
-                paddingLeft: 32,
-                paddingRight: 32,
-                height: 48,
-                background: "linear-gradient(105deg, #2563eb, #1d4ed8)",
-                border: "none",
-                boxShadow: "0 8px 20px -6px rgba(37,99,235,0.4)",
+                color: "#0f172a",
+                fontSize: 24,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
               }}
             >
-              Gửi câu trả lời
-            </Button>
-          </div>
+              <MessageOutlined style={{ color: "#6366f1" }} />
+              {answers} câu trả lời
+            </Title>
+
+            {commentTree.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "56px 0" }}>
+                <Empty description="Chưa có bình luận nào. Hãy là người đầu tiên bình luận!" />
+              </div>
+            ) : (
+              <div style={{ marginBottom: 32 }}>
+                {commentTree.map((node) => (
+                  <CommentThread
+                    key={node.id}
+                    node={node}
+                    replyingId={replyingId}
+                    replyText={replyText}
+                    submitting={submitting}
+                    onOpenReply={(commentId) => {
+                      setReplyingId(commentId);
+                      setReplyText("");
+                    }}
+                    onChangeReply={setReplyText}
+                    onSubmitReply={(parentId) => void submitReply(parentId)}
+                    onCancelReply={() => {
+                      setReplyingId(null);
+                      setReplyText("");
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Inline Comment Box - Chuyên nghiệp, xuất hiện khi nhấn nút Bình luận */}
+            {showInlineCommentBox && (
+              <div
+                ref={commentBoxRef}
+                style={{
+                  marginTop: 24,
+                  marginBottom: 24,
+                  background: "#ffffff",
+                  borderRadius: 24,
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 20px 35px -12px rgba(0,0,0,0.1)",
+                  padding: 24,
+                  animation: "fadeInUp 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1)",
+                }}
+              >
+                <div style={{ display: "flex", gap: 16 }}>
+                  <Avatar
+                    size={44}
+                    icon={<UserOutlined />}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <Text strong style={{ fontSize: 16 }}>
+                      Viết bình luận
+                    </Text>
+                    <TextArea
+                      ref={commentInputRef}
+                      rows={4}
+                      value={inlineCommentText}
+                      onChange={(e) => setInlineCommentText(e.target.value)}
+                      placeholder="Chia sẻ suy nghĩ của bạn về câu hỏi này..."
+                      style={{
+                        marginTop: 12,
+                        borderRadius: 16,
+                        border: "1px solid #e2e8f0",
+                        fontSize: 15,
+                        padding: 12,
+                        resize: "vertical",
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 12,
+                        marginTop: 16,
+                      }}
+                    >
+                      <Button
+                        onClick={handleCancelInlineComment}
+                        style={{ borderRadius: 40, fontWeight: 500 }}
+                      >
+                        Hủy
+                      </Button>
+                      <Button
+                        type="primary"
+                        icon={<SendOutlined />}
+                        loading={inlineSubmitting}
+                        onClick={() => void handleSubmitInlineComment()}
+                        style={{
+                          borderRadius: 40,
+                          fontWeight: 600,
+                          paddingLeft: 24,
+                          paddingRight: 24,
+                          background:
+                            "linear-gradient(135deg, #6366f1, #4f46e5)",
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
+                        }}
+                      >
+                        Gửi bình luận
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       </main>
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
