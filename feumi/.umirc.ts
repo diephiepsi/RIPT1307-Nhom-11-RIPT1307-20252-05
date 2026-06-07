@@ -21,6 +21,11 @@ export default defineConfig({
       component: "admin/users",
       wrappers: ["@/wrappers/requireAdmin"],
     },
+    {
+      path:"/admin/dashboard",
+      component:"admin/dashboard",
+      wrappers:["@/wrappers/requireAdmin"]
+    },
 
     { path: "/docs", component: "docs" },
   ],

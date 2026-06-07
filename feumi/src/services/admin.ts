@@ -10,4 +10,7 @@ export const adminService = {
   getPosts: () => api.get('/admin/posts'),
   approvePost: (id: string) => api.patch(`/admin/posts/${id}/approve`),
   deletePost: (id: string) => api.delete(`/admin/posts/${id}`),
+  getStats: () => api.get('/admin/stats')
+  
+  
 };

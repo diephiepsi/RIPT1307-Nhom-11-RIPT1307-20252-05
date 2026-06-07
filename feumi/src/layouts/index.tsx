@@ -1,9 +1,9 @@
 import { Layout, Menu, Space, Typography, Popover, Badge, List, Avatar, Button } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
-import { Link, Outlet, useLocation, useNavigate } from 'umi'; // ĐÃ SỬA: Dùng umi thay vì react-router-dom
+import { Link, Outlet, useLocation, useNavigate } from 'umi';
 import { useState, useEffect } from 'react';
-import { api } from '../services/api'; // Đường dẫn đến file axios của bạn
-import { storage } from '../services/storage'; // Đường dẫn đến file lưu token
+import { api } from '../services/api'; 
+import { storage } from '../services/storage'; 
 
 const { Header, Content, Sider } = Layout;
 
@@ -23,7 +23,7 @@ interface NotificationItem {
 function useSelectedKey(pathname: string) {
   if (pathname.startsWith('/admin/users')) return '/admin/users';
   if (pathname.startsWith('/admin/posts')) return '/admin/posts';
-  if (pathname.startsWith('/ask')) return '/ask';
+  if (pathname.startsWith('/admin/dashboard')) return '/admin/dashboard'; 
   if (pathname.startsWith('/login')) return '/login';
   if (pathname.startsWith('/register')) return '/register';
   return '/';
@@ -34,7 +34,7 @@ export default function GlobalLayout() {
   const nav = useNavigate();
   const selectedKey = useSelectedKey(loc.pathname);
 
-  // Lấy user trực tiếp từ storage (vì UmiJS không cần xài Redux phức tạp như Vite cũ)
+  // Lấy user trực tiếp từ storage 
   const user = storage.getUser();
   const token = storage.getToken();
 
@@ -134,6 +134,7 @@ export default function GlobalLayout() {
     sidebarItems.push(
       { key: '/admin/posts', label: <Link to="/admin/posts">⚙️ Quản trị bài</Link> },
       { key: '/admin/users', label: <Link to="/admin/users">⚙️ Quản trị user</Link> },
+      { key: '/admin/dashboard', label: <Link to="/admin/dashboard">📊 Thống kê</Link> },
     );
   }
 

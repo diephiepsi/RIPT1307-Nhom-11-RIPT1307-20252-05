@@ -1,8 +1,8 @@
-import { App, Button, Descriptions, Modal, Space, Tag, Typography } from 'antd';
-import { useState, useRef } from 'react';
-import { ProTable } from '@ant-design/pro-components';
-import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { adminService } from '../../services/admin';
+import { App, Button, Descriptions, Modal, Space, Tag, Typography } from "antd";
+import { useState, useRef } from "react";
+import { ProTable } from "@ant-design/pro-components";
+import type { ProColumns, ActionType } from "@ant-design/pro-components";
+import { adminService } from "../../services/admin";
 
 type AdminPostRow = {
   id: string;
@@ -21,22 +21,26 @@ export default function AdminPostsPage() {
   const actionRef = useRef<ActionType>();
 
   const columns: ProColumns<AdminPostRow>[] = [
-    { title: 'Tiêu đề', dataIndex: 'title', copyable: true },
-    { title: 'Tác giả', dataIndex: 'authorName' },
-    { title: 'Điểm', dataIndex: 'score' },
+    { title: "Tiêu đề", dataIndex: "title", copyable: true },
+    { title: "Tác giả", dataIndex: "authorName" },
+    { title: "Điểm", dataIndex: "score" },
     {
-      title: 'Ngày',
-      dataIndex: 'createdAt',
-      valueType: 'dateTime',
+      title: "Ngày",
+      dataIndex: "createdAt",
+      valueType: "dateTime",
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'isApproved',
-      render: (_, row) => <Tag color={row.isApproved ? 'green' : 'orange'}>{row.isApproved ? 'Đã duyệt' : 'Chờ duyệt'}</Tag>,
+      title: "Trạng thái",
+      dataIndex: "isApproved",
+      render: (_, row) => (
+        <Tag color={row.isApproved ? "green" : "orange"}>
+          {row.isApproved ? "Đã duyệt" : "Chờ duyệt"}
+        </Tag>
+      ),
     },
     {
-      title: 'Thẻ',
-      dataIndex: 'tags',
+      title: "Thẻ",
+      dataIndex: "tags",
       render: (_, row) => (
         <>
           {row.tags?.map((t) => (
@@ -46,8 +50,8 @@ export default function AdminPostsPage() {
       ),
     },
     {
-      title: 'Hành động',
-      key: 'actions',
+      title: "Hành động",
+      key: "actions",
       render: (_, row) => (
         <Space>
           <Button onClick={() => setViewing(row)}>Xem</Button>
@@ -57,10 +61,10 @@ export default function AdminPostsPage() {
               onClick={async () => {
                 try {
                   await adminService.approvePost(row.id);
-                  message.success('Đã duyệt bài viết');
+                  message.success("Đã duyệt bài viết");
                   actionRef.current?.reload();
                 } catch {
-                  message.error('Duyệt bài thất bại');
+                  message.error("Duyệt bài thất bại");
                 }
               }}
             >
@@ -71,15 +75,15 @@ export default function AdminPostsPage() {
             danger
             onClick={() => {
               modal.confirm({
-                title: 'Xóa bài viết?',
-                content: 'Thao tác không thể hoàn tác',
+                title: "Xóa bài viết?",
+                content: "Thao tác không thể hoàn tác",
                 onOk: async () => {
                   try {
                     await adminService.deletePost(row.id);
-                    message.success('Đã xóa bài viết');
+                    message.success("Đã xóa bài viết");
                     actionRef.current?.reload();
                   } catch {
-                    message.error('Xóa bài thất bại');
+                    message.error("Xóa bài thất bại");
                   }
                 },
               });
@@ -105,7 +109,7 @@ export default function AdminPostsPage() {
             const { data } = await adminService.getPosts();
             return { data, success: true };
           } catch (err) {
-            message.error('Không tải được danh sách bài');
+            message.error("Không tải được danh sách bài");
             return { data: [], success: false };
           }
         }}
@@ -122,14 +126,30 @@ export default function AdminPostsPage() {
       >
         {viewing && (
           <Descriptions column={1} bordered>
-            <Descriptions.Item label="Tiêu đề">{viewing.title}</Descriptions.Item>
-            <Descriptions.Item label="Tác giả">{viewing.authorName}</Descriptions.Item>
+            <Descriptions.Item label="Tiêu đề">
+              {viewing.title}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tác giả">
+              {viewing.authorName}
+            </Descriptions.Item>
             <Descriptions.Item label="Thẻ">
-              {viewing.tags.map((tag) => (
+              {/* Sử dụng optional chaining (?.) để tránh crash khi bài viết không có thẻ tag */}
+              {viewing.tags?.map((tag) => (
                 <Tag key={tag}>{tag}</Tag>
               ))}
             </Descriptions.Item>
-            <Descriptions.Item label="Nội dung">{viewing.content}</Descriptions.Item>
+            <Descriptions.Item label="Nội dung">
+              {/* Thêm div hiển thị xuống dòng pre-wrap và thanh cuộn nếu nội dung quá dài */}
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                }}
+              >
+                {viewing.content}
+              </div>
+            </Descriptions.Item>
           </Descriptions>
         )}
       </Modal>
