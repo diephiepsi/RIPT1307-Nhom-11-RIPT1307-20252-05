@@ -1,8 +1,11 @@
-import { App, Button, Descriptions, Modal, Space, Tag, Typography } from "antd";
-import { useState, useRef } from "react";
-import { ProTable } from "@ant-design/pro-components";
-import type { ProColumns, ActionType } from "@ant-design/pro-components";
-import { adminService } from "../../services/admin";
+
+import { App, Button, Descriptions, Modal, Space, Tag, Typography, ConfigProvider } from 'antd';
+import viVN from 'antd/locale/vi_VN'; // Import gói tiếng Việt
+import { useState, useRef } from 'react';
+import { ProTable } from '@ant-design/pro-components';
+import type { ProColumns, ActionType } from '@ant-design/pro-components';
+import { adminService } from '../../services/admin';
+
 
 type AdminPostRow = {
   id: string;
@@ -97,9 +100,11 @@ export default function AdminPostsPage() {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Typography.Title level={3}>Quản trị bài đăng</Typography.Title>
+    <ConfigProvider locale={viVN}>
+      <div style={{ padding: 24 }}>
+        <Typography.Title level={3}>Quản trị bài đăng</Typography.Title>
 
+<<<<<<< HEAD
       <ProTable<AdminPostRow>
         actionRef={actionRef}
         rowKey="id"
@@ -154,5 +159,56 @@ export default function AdminPostsPage() {
         )}
       </Modal>
     </div>
+=======
+        <ProTable<AdminPostRow>
+          actionRef={actionRef}
+          rowKey="id"
+          columns={columns}
+          request={async () => {
+            try {
+              const { data } = await adminService.getPosts();
+              return { data, success: true };
+            } catch (err) {
+              message.error('Không tải được danh sách bài');
+              return { data: [], success: false };
+            }
+          }}
+          search={false}
+          
+          // --- BỔ SUNG DỊCH THUẬT CHO CÁC NÚT CÔNG CỤ VÀ PHÂN TRANG ---
+          options={{
+            reload: true,
+            density: true,
+            setting: true,
+          }}
+          pagination={{ 
+            pageSize: 10,
+            showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng số ${total} bài`
+          }}
+        />
+
+        <Modal
+          title="Chi tiết bài viết"
+          open={!!viewing}
+          onCancel={() => setViewing(null)}
+          footer={<Button onClick={() => setViewing(null)}>Đóng</Button>}
+          width={800}
+        >
+          {viewing && (
+            <Descriptions column={1} bordered>
+              <Descriptions.Item label="Tiêu đề">{viewing.title}</Descriptions.Item>
+              <Descriptions.Item label="Tác giả">{viewing.authorName}</Descriptions.Item>
+              <Descriptions.Item label="Thẻ">
+                {viewing.tags.map((tag) => (
+                  <Tag key={tag}>{tag}</Tag>
+                ))}
+              </Descriptions.Item>
+              <Descriptions.Item label="Nội dung">{viewing.content}</Descriptions.Item>
+            </Descriptions>
+          )}
+        </Modal>
+      </div>
+    </ConfigProvider>
+>>>>>>> 85e59e89e0d31b5000eb4312ed9597e1c036f844
   );
 }
