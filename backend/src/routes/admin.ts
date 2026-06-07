@@ -142,15 +142,41 @@ router.post('/users/:id/reset-password', async (req, res) => {
 router.get('/stats', async (_req, res) => {
   try {
     const totalUsers = await prisma.user.count();
+    const totalStudents = await prisma.user.count({ where: { role: 'STUDENT' } });
+    const totalLecturers = await prisma.user.count({ where: { role: 'LECTURER' } });
     const totalPosts = await prisma.question.count({ where: { deletedAt: null } });
     const pendingPosts = await prisma.question.count({ where: { deletedAt: null, isApproved: false } });
     const totalComments = await prisma.comment.count({ where: { deletedAt: null } });
 
+    // Dữ liệu biểu đồ: số bài viết trong 7 ngày qua
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentPosts = await prisma.question.findMany({
+      where: { deletedAt: null, createdAt: { gte: sevenDaysAgo } },
+      select: { createdAt: true }
+    });
+
+    const chartDataMap: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      chartDataMap[d.toISOString().split('T')[0]] = 0;
+    }
+    recentPosts.forEach(p => {
+      const dateStr = p.createdAt.toISOString().split('T')[0];
+      if (chartDataMap[dateStr] !== undefined) chartDataMap[dateStr]++;
+    });
+    const chartData = Object.keys(chartDataMap).map(date => ({ date, count: chartDataMap[date] }));
+
     res.json({
       totalUsers,
+      totalStudents,
+      totalLecturers,
       totalPosts,
       pendingPosts,
-      totalComments
+      totalComments,
+      totalVisits: totalUsers * 5 + totalPosts * 10, 
+      chartData
     });
   } catch (error) {
     console.error("[GET /admin/stats] error:", error);

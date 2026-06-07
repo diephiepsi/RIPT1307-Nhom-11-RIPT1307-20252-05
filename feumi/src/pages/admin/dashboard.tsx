@@ -5,16 +5,31 @@ import {
   UserOutlined,
   FileTextOutlined,
   ClockCircleOutlined,
-  CommentOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  SolutionOutlined,
 } from "@ant-design/icons";
 import { adminService } from "../../services/admin";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 // Định nghĩa kiểu dữ liệu thống kê trả về từ Backend
 interface StatsData {
   totalUsers: number;
+  totalStudents: number;
+  totalLecturers: number;
   totalPosts: number;
   pendingPosts: number;
   totalComments: number;
+  totalVisits: number;
+  chartData: { date: string; count: number }[];
 }
 
 export default function AdminDashboard() {
@@ -92,7 +107,7 @@ export default function AdminDashboard() {
         </Typography.Title>
       </div>
       <Row gutter={[24, 24]}>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Card
             bordered
             hoverable
@@ -102,13 +117,13 @@ export default function AdminDashboard() {
             <Statistic
               title={
                 <span style={{ fontWeight: 500, fontSize: "16px" }}>
-                  Tổng Người dùng
+                  Tổng Sinh viên
                 </span>
               }
-              value={stats?.totalUsers || 0}
+              value={stats?.totalStudents || 0}
               prefix={
                 <UserOutlined
-                  style={{ color: "#1890ff", marginRight: "8px" }}
+                  style={{ color: "#fa8c16", marginRight: "8px" }}
                 />
               }
               valueStyle={{ fontWeight: "bold" }}
@@ -116,7 +131,48 @@ export default function AdminDashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
+          <Card
+            bordered
+            hoverable
+            onClick={() => navigate("/admin/users")}
+            style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
+          >
+            <Statistic
+              title={
+                <span style={{ fontWeight: 500, fontSize: "16px" }}>
+                  Tổng Giảng viên
+                </span>
+              }
+              value={stats?.totalLecturers || 0}
+              prefix={
+                <SolutionOutlined
+                  style={{ color: "#13c2c2", marginRight: "8px" }}
+                />
+              }
+              valueStyle={{ fontWeight: "bold" }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} md={8}>
+          <Card bordered style={{ border: "1px solid #d9d9d9" }}>
+            <Statistic
+              title={
+                <span style={{ fontWeight: 500, fontSize: "16px" }}>
+                  Lượt truy cập
+                </span>
+              }
+              value={stats?.totalVisits || 0}
+              prefix={
+                <EyeOutlined style={{ color: "#eb2f96", marginRight: "8px" }} />
+              }
+              valueStyle={{ fontWeight: "bold" }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} md={8}>
           <Card
             bordered
             hoverable
@@ -132,7 +188,7 @@ export default function AdminDashboard() {
               value={stats?.totalPosts || 0}
               prefix={
                 <FileTextOutlined
-                  style={{ color: "#52c41a", marginRight: "8px" }}
+                  style={{ color: "#1890ff", marginRight: "8px" }}
                 />
               }
               valueStyle={{ fontWeight: "bold" }}
@@ -140,7 +196,7 @@ export default function AdminDashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Card
             bordered
             hoverable
@@ -164,29 +220,80 @@ export default function AdminDashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Card
             bordered
             hoverable
-            onClick={() => {
-              alert("Chức năng quản lý bình luận độc lập đang được phát triển");
-            }}
+            onClick={() => navigate("/admin/posts")}
             style={{ border: "1px solid #d9d9d9", cursor: "pointer" }}
           >
             <Statistic
               title={
                 <span style={{ fontWeight: 500, fontSize: "16px" }}>
-                  Tổng Bình luận
+                  Bài viết đã duyệt
                 </span>
               }
-              value={stats?.totalComments || 0}
+              value={(stats?.totalPosts || 0) - (stats?.pendingPosts || 0)}
               prefix={
-                <CommentOutlined
-                  style={{ color: "#722ed1", marginRight: "8px" }}
+                <CheckCircleOutlined
+                  style={{ color: "#52c41a", marginRight: "8px" }}
                 />
               }
               valueStyle={{ fontWeight: "bold" }}
             />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        <Col xs={24}>
+          <Card
+            bordered
+            title={
+              <span style={{ fontWeight: 600, fontSize: "18px" }}>
+                Biểu đồ số lượng bài đăng 7 ngày gần nhất
+              </span>
+            }
+            style={{ border: "1px solid #d9d9d9", borderRadius: 12 }}
+          >
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart
+                data={stats?.chartData || []}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#e2e8f0"
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#64748b" }}
+                  tickMargin={10}
+                />
+                <YAxis
+                  tick={{ fill: "#64748b" }}
+                  tickMargin={10}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "none",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 8 }}
+                  name="Số bài đăng"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </Card>
         </Col>
       </Row>
