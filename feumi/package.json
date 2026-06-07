@@ -1,6 +1,6 @@
 {
   "private": true,
-  "author": "diephiepsi <diepminh20060911@gmail.com>",
+  "author": "diephiepsi <buncha453@gmail.com>",
   "scripts": {
     "dev": "umi dev",
     "build": "umi build",
@@ -18,6 +18,12 @@
     "tinymce": "^8.5.1",
     "umi": "^4.6.61"
   },
+
+  "scripts": {
+  "dev": "umi dev",
+  "build": "umi build",
+  "postinstall": "umi setup"
+},
   "devDependencies": {
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",

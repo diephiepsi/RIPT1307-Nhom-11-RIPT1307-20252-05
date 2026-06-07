@@ -1,10 +1,9 @@
 import { Layout, Menu, Space, Typography, Popover, Badge, List, Avatar, Button } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
-import { Link, Outlet, useLocation, useNavigate } from 'umi'; // ĐÃ SỬA: Dùng umi thay vì react-router-dom
+import { Link, Outlet, useLocation, useNavigate } from 'umi'; 
 import { useState, useEffect } from 'react';
-import { api } from '../services/api'; // Đường dẫn đến file axios của bạn
-import { storage } from '../services/storage'; // Đường dẫn đến file lưu token
-
+import { api } from '../services/api'; 
+import { storage } from '../services/storage'; 
 const { Header, Content, Sider } = Layout;
 
 // Kiểu dữ liệu thông báo
@@ -40,9 +39,7 @@ export default function GlobalLayout() {
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  // ============================================================
-  // LOGIC LẤY THÔNG BÁO (GIỮ NGUYÊN TỪ CŨ)
-  // ============================================================
+
   useEffect(() => {
     // Chỉ gọi API nếu đã đăng nhập
     if (!token) return;
@@ -139,7 +136,6 @@ export default function GlobalLayout() {
 
   const isAuthPage = selectedKey === '/login' || selectedKey === '/register';
 
-  // Nếu đang ở trang Đăng nhập / Đăng ký thì không hiện Header và Menu bên trái
   if (isAuthPage) {
     return <Outlet />;
   }
@@ -226,7 +222,7 @@ export default function GlobalLayout() {
         </Sider>
 
         <Content style={{ padding: '24px', backgroundColor: '#ffffff', minHeight: 'calc(100vh - 50px)', flex: 1 }}>
-          <Outlet /> {/* Nơi các trang con như /ask, /questions sẽ hiển thị */}
+          <Outlet /> 
         </Content>
       </Layout>
     </Layout>

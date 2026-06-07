@@ -31,7 +31,7 @@ function mapQuestionListItem(x: any, myUserId?: string) {
     id: x.id,
     title: x.title,
     createdAt: x.createdAt.toISOString(),
-    updatedAt: x.updatedAt?.toISOString?.() ?? undefined,
+    updatedAt: x.updatedAt ? x.updatedAt.toISOString() : null,
     author: x.author,
     tags: (x.tags ?? []).map((t: any) => t.tag),
 
@@ -66,22 +66,13 @@ function mapComment(c: any, myUserId?: string) {
 /**
  * GET /api/questions
  * Lấy danh sách câu hỏi đã duyệt
- * Query:
- * - q: tìm kiếm
- * - tag: lọc tag
- * - sort: newest | oldest | views | likes | answers | hot
- * - status: all | answered | unanswered
- * - bookmarked=true
  */
 router.get("/", authOptional, async (req, res) => {
   try {
     const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
-    const tag =
-      typeof req.query.tag === "string" ? req.query.tag.trim() : undefined;
-    const sort =
-      typeof req.query.sort === "string" ? req.query.sort : "newest";
-    const status =
-      typeof req.query.status === "string" ? req.query.status : "all";
+    const tag = typeof req.query.tag === "string" ? req.query.tag.trim() : undefined;
+    const sort = typeof req.query.sort === "string" ? req.query.sort : "newest";
+    const status = typeof req.query.status === "string" ? req.query.status : "all";
     const onlyBookmarked = req.query.bookmarked === "true";
 
     const where: Prisma.QuestionWhereInput = {
@@ -134,20 +125,17 @@ router.get("/", authOptional, async (req, res) => {
             role: true,
           },
         },
-
         tags: {
           include: {
             tag: true,
           },
         },
-
         votes: {
           select: {
             value: true,
             userId: true,
           },
         },
-
         bookmarks: {
           where: {
             userId: req.user?.id ?? NO_USER_ID,
@@ -156,7 +144,6 @@ router.get("/", authOptional, async (req, res) => {
             id: true,
           },
         },
-
         _count: {
           select: {
             comments: {
@@ -211,7 +198,6 @@ router.get("/:id", authOptional, async (req, res) => {
         id,
         deletedAt: null,
       },
-
       include: {
         author: {
           select: {
@@ -220,20 +206,17 @@ router.get("/:id", authOptional, async (req, res) => {
             role: true,
           },
         },
-
         tags: {
           include: {
             tag: true,
           },
         },
-
         votes: {
           select: {
             value: true,
             userId: true,
           },
         },
-
         bookmarks: {
           where: {
             userId: req.user?.id ?? NO_USER_ID,
@@ -242,7 +225,6 @@ router.get("/:id", authOptional, async (req, res) => {
             id: true,
           },
         },
-
         comments: {
           where: {
             deletedAt: null,
@@ -255,7 +237,6 @@ router.get("/:id", authOptional, async (req, res) => {
             content: true,
             parentId: true,
             createdAt: true,
-
             author: {
               select: {
                 id: true,
@@ -263,7 +244,6 @@ router.get("/:id", authOptional, async (req, res) => {
                 role: true,
               },
             },
-
             votes: {
               select: {
                 value: true,
@@ -279,12 +259,8 @@ router.get("/:id", authOptional, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy bài viết" });
     }
 
-    // Nếu bài chưa duyệt, chỉ ADMIN hoặc chính tác giả được xem
     if (!q.isApproved) {
-      if (
-        !req.user ||
-        (req.user.role !== "ADMIN" && req.user.id !== q.authorId)
-      ) {
+      if (!req.user || (req.user.role !== "ADMIN" && req.user.id !== q.authorId)) {
         return res.status(403).json({
           message: "Bài viết này đang chờ Quản trị viên duyệt.",
         });
@@ -298,18 +274,14 @@ router.get("/:id", authOptional, async (req, res) => {
       title: q.title,
       content: q.content,
       createdAt: q.createdAt.toISOString(),
-      updatedAt: q.updatedAt.toISOString(),
-
+      updatedAt: q.updatedAt ? q.updatedAt.toISOString() : null,
       author: q.author,
       tags: q.tags.map((t) => t.tag),
-
       votes,
       likesCount: votes.likesCount,
       dislikesCount: votes.dislikesCount,
-
       viewsCount: q.viewsCount ?? 0,
       isBookmarked: Boolean(q.bookmarks?.length),
-
       comments: q.comments.map((c) => mapComment(c, req.user?.id)),
     });
   } catch (error) {
@@ -338,45 +310,35 @@ router.post("/", authRequired, async (req, res) => {
 
     const { title, content, tags } = parsed.data;
 
-    const created = await prisma.$transaction(
-      async (tx: Prisma.TransactionClient) => {
-        const q = await tx.question.create({
-          data: {
-            title,
-            content,
-            authorId: req.user!.id,
-            // isApproved mặc định false theo schema Prisma
-          },
+    const created = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const q = await tx.question.create({
+        data: {
+          title,
+          content,
+          authorId: req.user!.id,
+        },
+      });
+
+      for (const rawTagName of tags) {
+        const tagName = rawTagName.trim();
+        if (!tagName) continue;
+
+        const t = await tx.tag.upsert({
+          where: { name: tagName },
+          update: {},
+          create: { name: tagName },
         });
 
-        for (const rawTagName of tags) {
-          const tagName = rawTagName.trim();
+        await tx.questionTag.create({
+          data: {
+            questionId: q.id,
+            tagId: t.id,
+          },
+        });
+      }
+      return q;
+    });
 
-          if (!tagName) continue;
-
-          const t = await tx.tag.upsert({
-            where: {
-              name: tagName,
-            },
-            update: {},
-            create: {
-              name: tagName,
-            },
-          });
-
-          await tx.questionTag.create({
-            data: {
-              questionId: q.id,
-              tagId: t.id,
-            },
-          });
-        }
-
-        return q;
-      },
-    );
-
-    // Gửi mail cho admin để duyệt bài
     const recipients = await prisma.user.findMany({
       where: {
         role: "ADMIN",
@@ -396,8 +358,8 @@ router.post("/", authRequired, async (req, res) => {
             <p><b>${title}</b></p>
             <p>Vừa có một bài đăng mới đang chờ bạn duyệt.</p>
           `,
-        }),
-      ),
+        })
+      )
     );
 
     return res.status(201).json({
@@ -428,6 +390,20 @@ router.post("/:id/comments", authRequired, async (req, res) => {
     }
 
     const questionId = String(req.params.id);
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Tài khoản không hợp lệ hoặc hết phiên đăng nhập." });
+    }
+
+    // Kiểm tra tính tồn tại của User trong cơ sở dữ liệu để tránh lỗi P2003
+    const userExists = await prisma.user.findUnique({
+      where: { id: currentUserId },
+    });
+
+    if (!userExists) {
+      return res.status(400).json({ message: "Người dùng không tồn tại trên hệ thống." });
+    }
 
     const q = await prisma.question.findFirst({
       where: {
@@ -455,26 +431,21 @@ router.post("/:id/comments", authRequired, async (req, res) => {
           questionId,
           deletedAt: null,
         },
-        select: {
-          id: true,
-        },
+        select: { id: true },
       });
 
       if (!parent) {
-        return res.status(400).json({
-          message: "Không tìm thấy bình luận cha",
-        });
+        return res.status(400).json({ message: "Không tìm thấy bình luận cha" });
       }
     }
 
     const c = await prisma.comment.create({
       data: {
         questionId,
-        authorId: req.user!.id,
+        authorId: currentUserId,
         content: parsed.data.content,
         parentId: parsed.data.parentId ?? null,
       },
-
       include: {
         author: {
           select: {
@@ -483,7 +454,6 @@ router.post("/:id/comments", authRequired, async (req, res) => {
             role: true,
           },
         },
-
         votes: {
           select: {
             value: true,
@@ -493,15 +463,13 @@ router.post("/:id/comments", authRequired, async (req, res) => {
       },
     });
 
-    // Tạo notification in-app cho chủ bài, trừ khi tự bình luận bài của mình
-    if (q.authorId !== req.user!.id) {
+    if (q.authorId !== currentUserId) {
       try {
         const senderName = getSenderName(req.user);
-
         await prisma.notification.create({
           data: {
             recipientId: q.authorId,
-            senderId: req.user!.id,
+            senderId: currentUserId,
             type: "COMMENT",
             content: `${senderName} đã bình luận về bài viết của bạn`,
             targetId: questionId,
@@ -512,7 +480,6 @@ router.post("/:id/comments", authRequired, async (req, res) => {
       }
     }
 
-    // Gửi mail chạy nền, không làm fail chức năng comment/reply
     void sendMail({
       to: q.author.email,
       subject: "Có người trả lời câu hỏi của bạn",
@@ -524,7 +491,7 @@ router.post("/:id/comments", authRequired, async (req, res) => {
       console.error("[mail] comment notification failed:", err?.message || err);
     });
 
-    return res.status(201).json(mapComment(c, req.user?.id));
+    return res.status(201).json(mapComment(c, currentUserId));
   } catch (error) {
     console.error("[POST /questions/:id/comments] error:", error);
     return res.status(500).json({ message: "Lỗi bình luận" });
@@ -581,9 +548,7 @@ router.post("/:id/vote", authRequired, async (req, res) => {
             questionId,
           },
         },
-        update: {
-          value,
-        },
+        update: { value },
         create: {
           userId: req.user!.id,
           questionId,
@@ -591,11 +556,9 @@ router.post("/:id/vote", authRequired, async (req, res) => {
         },
       });
 
-      // Notification khi like bài viết, không gửi cho chính mình
       if (value === 1 && q.authorId !== req.user!.id) {
         try {
           const senderName = getSenderName(req.user);
-
           await prisma.notification.create({
             data: {
               recipientId: q.authorId,
@@ -612,9 +575,7 @@ router.post("/:id/vote", authRequired, async (req, res) => {
     }
 
     const votes = await prisma.vote.findMany({
-      where: {
-        questionId,
-      },
+      where: { questionId },
       select: {
         value: true,
         userId: true,
@@ -657,12 +618,8 @@ router.post("/:id/view", async (req, res) => {
     }
 
     const updated = await prisma.question.findUnique({
-      where: {
-        id: questionId,
-      },
-      select: {
-        viewsCount: true,
-      },
+      where: { id: questionId },
+      select: { viewsCount: true },
     });
 
     return res.json({
@@ -688,9 +645,7 @@ router.post("/:id/bookmark", authRequired, async (req, res) => {
         id: questionId,
         deletedAt: null,
       },
-      select: {
-        id: true,
-      },
+      select: { id: true },
     });
 
     if (!q) {
@@ -708,9 +663,7 @@ router.post("/:id/bookmark", authRequired, async (req, res) => {
 
     if (existed) {
       await prisma.bookmark.delete({
-        where: {
-          id: existed.id,
-        },
+        where: { id: existed.id },
       });
 
       return res.json({
