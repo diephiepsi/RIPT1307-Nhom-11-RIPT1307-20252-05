@@ -236,7 +236,6 @@ router.get("/:id", auth_1.authOptional, async (req, res) => {
         if (!q) {
             return res.status(404).json({ message: "Không tìm thấy bài viết" });
         }
-        // Nếu bài chưa duyệt, chỉ ADMIN hoặc chính tác giả được xem
         if (!q.isApproved) {
             if (!req.user ||
                 (req.user.role !== "ADMIN" && req.user.id !== q.authorId)) {
@@ -283,6 +282,22 @@ router.post("/", auth_1.authRequired, async (req, res) => {
             return res.status(400).json(parsed.error.flatten());
         }
         const { title, content, tags } = parsed.data;
+        // Chống spam: Kiểm tra xem user có đăng bài nào trong vòng 30 giây qua không
+        const recentQuestion = await db_1.prisma.question.findFirst({
+            where: {
+                authorId: req.user.id,
+                createdAt: {
+                    gte: new Date(Date.now() - 30 * 1000), // 30 giây
+                },
+            },
+        });
+        if (recentQuestion) {
+            return res
+                .status(429)
+                .json({
+                message: "Bạn đang thao tác quá nhanh. Vui lòng chờ 30 giây trước khi đăng bài tiếp theo.",
+            });
+        }
         const created = await db_1.prisma.$transaction(async (tx) => {
             const q = await tx.question.create({
                 data: {
@@ -314,7 +329,6 @@ router.post("/", auth_1.authRequired, async (req, res) => {
             }
             return q;
         });
-        // Gửi mail cho admin để duyệt bài
         const recipients = await db_1.prisma.user.findMany({
             where: {
                 role: "ADMIN",
@@ -324,7 +338,6 @@ router.post("/", auth_1.authRequired, async (req, res) => {
                 email: true,
             },
         });
-        // Chạy ngầm việc gửi mail báo Admin để tránh block (làm chậm) request đăng bài
         void Promise.allSettled(recipients.map((u) => (0, mail_1.sendMail)({
             to: u.email,
             subject: "Yêu cầu duyệt bài đăng mới trên diễn đàn",

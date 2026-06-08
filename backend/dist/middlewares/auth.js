@@ -16,7 +16,6 @@ function authOptional(req, _res, next) {
         req.user = payload;
     }
     catch {
-        // ignore invalid token for optional auth
     }
     next();
 }
