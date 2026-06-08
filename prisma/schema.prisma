@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  LECTURER
+  ADMIN
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  fullName  String     @map("full_name")
+  password  String
+  role      Role       @default(STUDENT)
+  locked    Boolean    @default(false) @map("is_locked")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  questions Question[]
+  comments  Comment[]
+  votes     Vote[]
+  bookmarks Bookmark[]
+
+  @@map("users")
+}
+
+model Tag {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  questions QuestionTag[]
+
+  @@map("tags")
+}
+
+model Question {
+  id         String        @id @default(cuid())
+  title      String
+  content    String       
+  isApproved Boolean       @default(false) @map("is_approved")
+  viewsCount Int           @default(0) @map("views_count")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  deletedAt  DateTime?     @map("deleted_at")
+  authorId   String        @map("user_id")
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags       QuestionTag[]
+  comments   Comment[]
+  votes      Vote[]
+  bookmarks  Bookmark[]
+
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model QuestionTag {
+  questionId String   @map("post_id")
+  tagId      String   @map("tag_id")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, tagId])
+  @@map("post_tags")
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  content    String    
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+  questionId String    @map("post_id")
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorId   String    @map("user_id")
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId   String?   @map("parent_id")
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[] @relation("CommentReplies")
+  votes      Vote[]
+
+  @@map("comments")
+}
+
+model Vote {
+  id         String    @id @default(cuid())
+  value      Int
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String?   @map("post_id")
+  question   Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  commentId  String?   @map("comment_id")
+  comment    Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@unique([userId, commentId])
+  @@index([questionId])
+  @@index([commentId])
+  @@map("votes")
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  questionId String   @map("post_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionId])
+  @@map("bookmarks")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  recipientId String   @map("recipient_id")
+  senderId    String   @map("sender_id")
+  type        String
+  content     String
+  targetId    String   @map("target_id")
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
