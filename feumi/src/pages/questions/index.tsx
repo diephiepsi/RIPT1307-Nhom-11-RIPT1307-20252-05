@@ -78,7 +78,8 @@ export default function QuestionsPage() {
         status,
         bookmarked: bookmarked || undefined,
       });
-      setRows(data);
+      // Guard: bảo vệ khỏi trường hợp API trả về object/null thay vì array
+      setRows(Array.isArray(data) ? data : []);
     } catch (err: any) {
       message.error(
         err?.response?.data?.message || "Không tải được danh sách câu hỏi",
@@ -91,7 +92,7 @@ export default function QuestionsPage() {
   useEffect(() => {
     questionsService
       .tags()
-      .then(setTags)
+      .then((data) => setTags(Array.isArray(data) ? data : []))
       .catch(() => void 0);
   }, []);
 
