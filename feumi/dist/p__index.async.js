@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[866],{37025:function(s,u,n){n.r(u),n.d(u,{default:function(){return e}});var t=n(67294),f=n(40905);function e(){return(0,t.useEffect)(function(){f.m8.replace("/questions")},[]),null}}}]);
